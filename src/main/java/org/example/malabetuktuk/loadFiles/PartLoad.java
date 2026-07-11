@@ -62,7 +62,13 @@ public class PartLoad {
                     }
 
                     String priceStr = parts[3].trim().replace("Rs.", "").replace("Rs", "").trim();
-                    double price = priceStr.isEmpty() ? 0.0 : Double.parseDouble(priceStr);
+                    double price = 0.00;
+                    if(priceStr.isEmpty()){
+                        price = 0.00;
+                    }
+                    else{
+                        price =  Double.parseDouble(priceStr);
+                    }
 
                     String qtyStr = parts[4].trim();
                     int quantity = qtyStr.isEmpty() ? 0 : Integer.parseInt(qtyStr);
@@ -105,7 +111,6 @@ public class PartLoad {
             bw = new BufferedWriter(new java.io.FileWriter(fileName));
 
             for (Part part : inventoryList) {
-                // Build the line manually using a clean separator (e.g., comma)
                 String line = part.getPartId() + "," +
                         part.getPartName() + "," +
                         part.getPartBrand() + "," +
@@ -116,9 +121,8 @@ public class PartLoad {
                         part.getImagePath();
 
                 bw.write(line);
-                bw.newLine(); // Move to the next line for the next item
+                bw.newLine();
             }
-            System.out.println("✅ All data successfully saved to " + fileName);
 
         } catch (IOException e) {
             throw new RuntimeException(e);

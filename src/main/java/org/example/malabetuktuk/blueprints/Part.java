@@ -1,6 +1,5 @@
 package org.example.malabetuktuk.blueprints;
 
-
 public class Part {
     private String partId;
     private String partName;
@@ -20,10 +19,10 @@ public class Part {
         this.partType = partType;
         this.addedDate = addedDate;
         this.imagePath = imagePath;
-
     }
+
     public String getPartId() {
-        return this.partId;
+        return partId;
     }
     public void setPartId(String partId) {
         this.partId = partId;
@@ -70,6 +69,6 @@ public class Part {
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
     }
-    
+
 
 }

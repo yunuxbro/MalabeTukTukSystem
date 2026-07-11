@@ -13,28 +13,30 @@ public class Dealer {
         this.DealerCity = DealerCity;
     }
 
-    public String getDealerId() {
-        return this.DealerId;
+    public String getDealerId(){
+        return DealerId;
     }
-    public void setDealerId(String DealerId) {
+    public String getDealerName(){
+        return DealerName;
+    }
+    public int getDealerNum(){
+        return DealerNum;
+
+    }
+    public String getDealerCity(){
+        return DealerCity;
+    }
+    public void setDealerId(String DealerId){
         this.DealerId = DealerId;
     }
-    public String getDealerName() {
-        return this.DealerName;
-    }
-    public void setDealerName(String DealerName) {
+    public void setDealerName(String DealerName){
         this.DealerName = DealerName;
     }
-    public int getDealerNum() {
-        return this.DealerNum;
-    }
-    public void setDealerNum(int DealerNum) {
+    public void setDealerNum(int DealerNum){
         this.DealerNum = DealerNum;
     }
-    public String getDealerCity() {
-        return this.DealerCity;
-    }
-    public void setDealerCity(String DealerCity) {
+    public void setDealerCity(String DealerCity){
         this.DealerCity = DealerCity;
     }
+
 }

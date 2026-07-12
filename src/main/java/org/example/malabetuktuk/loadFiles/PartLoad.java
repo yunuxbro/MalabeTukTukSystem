@@ -114,7 +114,7 @@ public class PartLoad {
                         part.getPartName() + "," +
                         part.getPartBrand() + "," +
                         part.getPartPrice() + "," +
-                        part.getPartQuantity(partQuantity) + "," +
+                        part.getPartQuantity() + "," +
                         part.getPartType() + "," +
                         part.getAddedDate() + "," +
                         part.getImagePath();

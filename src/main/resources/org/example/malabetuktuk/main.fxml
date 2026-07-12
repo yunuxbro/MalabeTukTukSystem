@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="650.0" prefWidth="950.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.malabetuktuk.HelloController">
+    <children>
+        <TabPane tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <tabs>
+
+                <Tab text="Inventory">
+                    <content>
+                        <VBox spacing="10.0">
+                            <children>
+
+                                <HBox alignment="CENTER_LEFT" spacing="15.0">
+                                    <children>
+                                        <Label fx:id="lblLoadedStatus" text="Loaded 10 inventory items and 8 dealers." />
+                                        <Button fx:id="btnReload" mnemonicParsing="false" onAction="#handleReloadAll" text="Reload All" />
+                                    </children>
+                                </HBox>
+
+                                <HBox spacing="20.0">
+                                    <children>
+                                        <Label fx:id="lblTotalParts" text="Total parts: 10" />
+                                        <Label fx:id="lblTotalValue" text="Total value: Rs. 419002.50" />
+                                    </children>
+                                </HBox>
+
+                                <Label text="Grouped by category, sorted by part code within each category." textFill="#555555" />
+
+                                <TableView fx:id="tblInventory" VBox.vgrow="ALWAYS">
+                                    <columns>
+                                        <TableColumn fx:id="colId" prefWidth="60.0" text="ID" />
+                                        <TableColumn fx:id="colProduct" prefWidth="200.0" text="Product" />
+                                        <TableColumn fx:id="colBrand" prefWidth="100.0" text="Brand" />
+                                        <TableColumn fx:id="colPrice" prefWidth="90.0" text="Price" />
+                                        <TableColumn fx:id="colStock" prefWidth="70.0" text="Stock" />
+                                        <TableColumn fx:id="colCategory" prefWidth="110.0" text="Category" />
+                                        <TableColumn fx:id="colDate" prefWidth="110.0" text="Date" />
+                                        <TableColumn fx:id="colImage" prefWidth="120.0" text="Image" />
+                                    </columns>
+                                </TableView>
+
+                                <Label text="Enter a stock threshold and click Check." />
+
+                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                    <children>
+                                        <Label text="Threshold:" />
+                                        <TextField fx:id="txtThreshold" prefWidth="80.0" text="5" />
+                                        <Button fx:id="btnCheckLowStock" mnemonicParsing="false" onAction="#handleCheckLowStock" text="Check Low Stock" />
+                                    </children>
+                                </HBox>
+
+                                <TableView fx:id="tblLowStock" prefHeight="150.0">
+                                    <columns>
+                                        <TableColumn fx:id="colLowId" prefWidth="60.0" text="ID" />
+                                        <TableColumn fx:id="colLowProduct" prefWidth="200.0" text="Product" />
+                                        <TableColumn fx:id="colLowBrand" prefWidth="100.0" text="Brand" />
+                                        <TableColumn fx:id="colLowPrice" prefWidth="90.0" text="Price" />
+                                        <TableColumn fx:id="colLowStock" prefWidth="70.0" text="Stock" />
+                                        <TableColumn fx:id="colLowCategory" prefWidth="110.0" text="Category" />
+                                        <TableColumn fx:id="colLowDate" prefWidth="110.0" text="Date" />
+                                        <TableColumn fx:id="colLowImage" prefWidth="120.0" text="Image" />
+                                    </columns>
+                                </TableView>
+
+                            </children>
+                            <padding>
+                                <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+                            </padding>
+                        </VBox>
+                    </content>
+                </Tab>
+
+                <Tab text="Dealers">
+                    <content>
+                        <AnchorPane>
+                            <children>
+                                <Label layoutX="30.0" layoutY="30.0" text="Dealers table content will go here directly." />
+                            </children>
+                        </AnchorPane>
+                    </content>
+                </Tab>
+
+            </tabs>
+        </TabPane>
+    </children>
+</AnchorPane>

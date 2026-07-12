@@ -4,7 +4,6 @@ import org.example.malabetuktuk.blueprints.Part;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class PartLoad {
     private static ArrayList<Part> inventoryList = new ArrayList<Part>();
@@ -115,7 +114,7 @@ public class PartLoad {
                         part.getPartName() + "," +
                         part.getPartBrand() + "," +
                         part.getPartPrice() + "," +
-                        part.getPartQuantity() + "," +
+                        part.getPartQuantity(partQuantity) + "," +
                         part.getPartType() + "," +
                         part.getAddedDate() + "," +
                         part.getImagePath();

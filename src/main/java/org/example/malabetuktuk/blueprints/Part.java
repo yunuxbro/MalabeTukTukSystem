@@ -45,7 +45,7 @@ public class Part {
     public void setPartPrice(double partPrice) {
         this.partPrice = partPrice;
     }
-    public int getPartQuantity() {
+    public int getPartQuantity(int partQuantity) {
         return this.partQuantity;
     }
     public void setPartQuantity(int partQuantity) {

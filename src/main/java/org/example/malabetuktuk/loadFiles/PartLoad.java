@@ -1,6 +1,7 @@
 package org.example.malabetuktuk.loadFiles;
 
 import org.example.malabetuktuk.blueprints.Part;
+import org.example.malabetuktuk.sorts.itemSort;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -139,6 +140,23 @@ public class PartLoad {
     public static void main(String[] args) {
         loadItems("data/inventory_legacy.txt");
         saveItems("data/updated_data_legacy.txt");
+
+//  testing
+//        System.out.println("--- BEFORE SORTING ---");
+//        for (Part p : getInventoryList()) {
+//            System.out.println(p.getPartType() + " | " + p.getPartId() + " | " + p.getPartName());
+//        }
+//
+//        // 2. Trigger your dual-criteria Bubble Sort class
+//        org.example.malabetuktuk.sorts.itemSort.sortInventory();
+//
+//        System.out.println("\n--- AFTER SORTING ---");
+//        for (Part p : getInventoryList()) {
+//            System.out.println(p.getPartType() + " | " + p.getPartId() + " | " + p.getPartName());
+//        }
+//
+//        // 3. Save the results out to verify file writing works too
+//        saveItems("data/updated_data_legacy.txt");
 
     }
 }

@@ -142,21 +142,20 @@ public class PartLoad {
         saveItems("data/updated_data_legacy.txt");
 
 //  testing
-//        System.out.println("--- BEFORE SORTING ---");
-//        for (Part p : getInventoryList()) {
-//            System.out.println(p.getPartType() + " | " + p.getPartId() + " | " + p.getPartName());
+//        // 1. Fetch your fresh data pool
+//        inventoryList.clear();
+//        loadItems("data/inventory_legacy.txt");
+//
+//// 2. Set the custom barrier value (e.g., 10)
+//        int userBarrier = 5;
+//        System.out.println("--- ITEMS BELOW QUANTITY " + userBarrier + " ---");
+//
+//// 3. Call the method with your variable passed inside the parentheses
+//        ArrayList<Part> results = org.example.malabetuktuk.POS.LowStock.getLowStockParts(userBarrier);
+//
+//// 4. Print out matching lines
+//        for (Part p : results) {
+//            System.out.println(p.getPartId() + " | Qty: " + p.getPartQuantity() + " | " + p.getPartName());
 //        }
-//
-//        // 2. Trigger your dual-criteria Bubble Sort class
-//        org.example.malabetuktuk.sorts.itemSort.sortInventory();
-//
-//        System.out.println("\n--- AFTER SORTING ---");
-//        for (Part p : getInventoryList()) {
-//            System.out.println(p.getPartType() + " | " + p.getPartId() + " | " + p.getPartName());
-//        }
-//
-//        // 3. Save the results out to verify file writing works too
-//        saveItems("data/updated_data_legacy.txt");
-
     }
 }

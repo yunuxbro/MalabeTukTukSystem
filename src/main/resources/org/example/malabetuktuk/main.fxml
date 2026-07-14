@@ -40,7 +40,7 @@
 
                                 <TableView fx:id="tblInventory" VBox.vgrow="ALWAYS">
                                     <columns>
-                             3           <TableColumn fx:id="colId" prefWidth="60.0" text="ID" />
+                                        <TableColumn fx:id="colId" prefWidth="60.0" text="ID" />
                                         <TableColumn fx:id="colProduct" prefWidth="200.0" text="Product" />
                                         <TableColumn fx:id="colBrand" prefWidth="100.0" text="Brand" />
                                         <TableColumn fx:id="colPrice" prefWidth="90.0" text="Price" />

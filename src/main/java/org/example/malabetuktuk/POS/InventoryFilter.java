@@ -4,7 +4,7 @@ import org.example.malabetuktuk.loadFiles.PartLoad;
 import java.util.ArrayList;
 
 public class InventoryFilter {
-    public static ArrayList<Part> filter(String partType, double partPrice, String keyword){
+    public static ArrayList<Part> filter(String partType, double minimumPrice, double maximumPrice, String keyword){
         ArrayList<Part> filteredList = new ArrayList<>();
         ArrayList<Part> allParts = PartLoad.getInventoryList();
 
@@ -13,6 +13,14 @@ public class InventoryFilter {
                 if(!part.getPartType().equalsIgnoreCase(partType)) {
                     continue;
                 }
+            }
+
+            if(part.getPartPrice() <  minimumPrice || part.getPartPrice() > maximumPrice) {
+                continue;
+            }
+
+            if(keyword != null && !keyword.trim().equals("")) {
+                Str
             }
         }
 

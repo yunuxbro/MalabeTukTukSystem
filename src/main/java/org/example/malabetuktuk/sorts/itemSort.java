@@ -16,12 +16,13 @@ public class itemSort {
                 Part temp = list.get(j);
                 Part nextTemp = list.get(j+1);
                 boolean status = false;
+
                 int categorySort = temp.getPartType().compareTo(nextTemp.getPartType());
                 if(categorySort > 0){
                     status = true;
                 }
                 else if(categorySort == 0){
-                    int idSort = temp.getPartType().compareTo(nextTemp.getPartType());
+                    int idSort = temp.getPartId().compareTo(nextTemp.getPartId());
                     if(idSort > 0){
                         status = true;
                     }
@@ -34,6 +35,5 @@ public class itemSort {
                 }
             }
         }
-
     }
 }

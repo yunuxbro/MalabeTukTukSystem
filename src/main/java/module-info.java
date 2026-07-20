@@ -4,5 +4,6 @@ module org.example.malabetuktuk {
 
 
     opens org.example.malabetuktuk to javafx.fxml;
+    opens org.example.malabetuktuk.blueprints to javafx.base;
     exports org.example.malabetuktuk;
 }

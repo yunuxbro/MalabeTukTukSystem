@@ -19,9 +19,17 @@ public class InventoryFilter {
                 continue;
             }
 
-            if(keyword != null && !keyword.trim().equals("")) {
-                
+            if (keyword != null && !keyword.trim().equals("")) {
+                String lowerKey = keyword.toLowerCase().trim();
+                boolean matchId = part.getPartId().toLowerCase().contains(lowerKey);
+                boolean matchName = part.getPartName().toLowerCase().contains(lowerKey);
+                boolean matchBrand = part.getPartBrand().toLowerCase().contains(lowerKey);
+
+                if (!matchId && !matchName && !matchBrand) {
+                    continue;
+                }
             }
+            filteredList.add(part);
         }
 
 

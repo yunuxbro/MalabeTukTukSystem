@@ -9,17 +9,14 @@ import java.io.IOException;
 
 public class HelloApplication extends Application {
     @Override
-    public void start(Stage stage) throws IOException {
-        // 1. Load the layout file from the root of your resources folder
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("/org/example/malabetuktuk/main.fxml"));
+    public void start(Stage stage) throws Exception {
+        // LOAD DATA BEFORE LOADING FXML
+        org.example.malabetuktuk.loadFiles.PartLoad.loadItems("data/inventory_legacy.txt");
 
-        // 2. Set the window frame size bounds (matching your 1000x650 low-fi scale)
-        Scene scene = new Scene(fxmlLoader.load(), 1000, 650);
-
-        // 3. Configure and present the window
-        stage.setTitle("Malabe Tuk Tuk - System Wireframe");
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("main.fxml"));
+        Scene scene = new Scene(fxmlLoader.load());
+        stage.setTitle("MalabeTukTuk");
         stage.setScene(scene);
-        stage.setResizable(false);
         stage.show();
     }
 

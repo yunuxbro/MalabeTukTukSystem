@@ -1,16 +1,20 @@
 package org.example.malabetuktuk;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.VBox;
 import org.example.malabetuktuk.blueprints.Part;
 import org.example.malabetuktuk.loadFiles.PartLoad;
 import org.example.malabetuktuk.POS.InventoryFilter;
 import org.example.malabetuktuk.POS.LowStock;
 import org.example.malabetuktuk.sorts.itemSort;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class InventoryController {
@@ -25,32 +29,18 @@ public class InventoryController {
     @FXML private TextField txtThreshold;
     @FXML private Label lblLowStockItems;
 
-    @FXML private TableView<Part> tblInventory;
-    @FXML private TableColumn<Part, String> colId;
-    @FXML private TableColumn<Part, String> colName;
-    @FXML private TableColumn<Part, String> colCategory;
-    @FXML private TableColumn<Part, String> colBrand;
-    @FXML private TableColumn<Part, Double> colPrice;
-    @FXML private TableColumn<Part, Integer> colQuantity;
-    @FXML private TableColumn<Part, Void> colAction;
-
-    private ObservableList<Part> tableData = FXCollections.observableArrayList();
+    @FXML private VBox vboxCategoryContainer;
 
     @FXML
     public void initialize() {
-        colId.setCellValueFactory(new PropertyValueFactory<>("partId"));
-        colName.setCellValueFactory(new PropertyValueFactory<>("partName"));
-        colCategory.setCellValueFactory(new PropertyValueFactory<>("partType"));
-        colBrand.setCellValueFactory(new PropertyValueFactory<>("partBrand"));
-        colPrice.setCellValueFactory(new PropertyValueFactory<>("partPrice"));
-        colQuantity.setCellValueFactory(new PropertyValueFactory<>("partQuantity"));
+        if (PartLoad.getInventoryList().isEmpty()) {
+            PartLoad.loadItems("data/inventory_legacy.txt");
+        }
 
         if (cmbCategory.getItems().isEmpty()) {
             cmbCategory.getItems().addAll("All", "ENGINE", "ELECTRICAL", "BODY", "BRAKE");
             cmbCategory.setValue("All");
         }
-
-        setupActionColumn();
 
         refreshScreen();
 
@@ -59,13 +49,101 @@ public class InventoryController {
     }
 
     private void refreshScreen() {
-        itemSort.sortInventory();
-
-        tableData.setAll(PartLoad.getInventoryList());
-        tblInventory.setItems(tableData);
-
+        itemSort.sortInventory(); // Group by Category then sort by ID
+        renderGridCards(PartLoad.getInventoryList());
         updateKPIs();
         updateLowStockAlerts();
+    }
+
+    private void renderGridCards(ArrayList<Part> parts) {
+        vboxCategoryContainer.getChildren().clear();
+
+        String currentCategory = "";
+        FlowPane currentFlowPane = null;
+
+        for (Part part : parts) {
+            // Check if we hit a new category group
+            if (!part.getPartType().equalsIgnoreCase(currentCategory)) {
+                currentCategory = part.getPartType();
+
+                // Category Header Label
+                Label lblCategoryHeader = new Label("CATEGORY: " + currentCategory.toUpperCase());
+                lblCategoryHeader.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 10 0 5 0; -fx-text-fill: #333;");
+                vboxCategoryContainer.getChildren().add(lblCategoryHeader);
+
+                // FlowPane creates the horizontal grid wrapping
+                currentFlowPane = new FlowPane();
+                currentFlowPane.setHgap(15);
+                currentFlowPane.setVgap(15);
+                vboxCategoryContainer.getChildren().add(currentFlowPane);
+            }
+
+            // Build individual Card
+            VBox card = createCard(part);
+            if (currentFlowPane != null) {
+                currentFlowPane.getChildren().add(card);
+            }
+        }
+    }
+
+    private VBox createCard(Part part) {
+        VBox card = new VBox(8);
+        card.setAlignment(Pos.CENTER);
+        card.setPadding(new Insets(10));
+        card.setPrefWidth(160);
+        card.setStyle("-fx-border-color: #ccc; -fx-border-radius: 5; -fx-background-color: #fafafa;");
+
+        // 1. Image View
+        ImageView imageView = new ImageView();
+        imageView.setFitWidth(100);
+        imageView.setFitHeight(100);
+        imageView.setPreserveRatio(true);
+
+        String path = part.getImagePath();
+        Image img = null;
+        if (path != null && !path.equals("null") && !path.trim().isEmpty()) {
+            File file = new File(path);
+            if (!file.exists()) file = new File("data/" + path);
+            if (!file.exists()) file = new File("data/images/" + path);
+
+            if (file.exists()) {
+                img = new Image(file.toURI().toString(), 100, 100, true, true);
+            }
+        }
+        if (img == null) {
+            img = new Image("https://via.placeholder.com/100?text=No+Image", 100, 100, true, true);
+        }
+        imageView.setImage(img);
+
+        // 2. Information Labels
+        Label lblName = new Label(part.getPartName());
+        lblName.setStyle("-fx-font-weight: bold; -fx-alignment: center;");
+        lblName.setWrapText(true);
+
+        Label lblId = new Label("ID: " + part.getPartId());
+        lblId.setStyle("-fx-font-size: 11px; -fx-text-fill: #555;");
+
+        Label lblQty = new Label("Qty: " + part.getPartQuantity());
+        lblQty.setStyle("-fx-font-size: 12px;");
+
+        Label lblPrice = new Label(String.format("Rs. %.2f", part.getPartPrice()));
+        lblPrice.setStyle("-fx-font-weight: bold; -fx-text-fill: #2a72d0;");
+
+        // 3. Add to Cart Button
+        Button btnAddToCart = new Button("Add to Cart");
+        btnAddToCart.setOnAction(e -> {
+            if (part.getPartQuantity() > 0) {
+                part.setPartQuantity(part.getPartQuantity() - 1);
+                PartLoad.saveItems("data/updated_data_legacy.txt");
+                refreshScreen();
+            } else {
+                Alert alert = new Alert(Alert.AlertType.WARNING, "Item is out of stock!", ButtonType.OK);
+                alert.showAndWait();
+            }
+        });
+
+        card.getChildren().addAll(imageView, lblName, lblId, lblQty, lblPrice, btnAddToCart);
+        return card;
     }
 
     private void updateKPIs() {
@@ -116,43 +194,10 @@ public class InventoryController {
                 maxPrice = Double.parseDouble(txtMaxPrice.getText().trim());
             }
         } catch (NumberFormatException e) {
+            // Keep default limits on error
         }
 
         ArrayList<Part> filtered = InventoryFilter.filter(category, minPrice, maxPrice, keyword);
-        tableData.setAll(filtered);
-    }
-
-    private void setupActionColumn() {
-        colAction.setCellFactory(param -> new TableCell<>() {
-            private final Button btnAddToCart = new Button("Add to Cart");
-
-            {
-                btnAddToCart.setOnAction(e -> {
-                    Part part = getTableView().getItems().get(getIndex());
-                    if (part.getPartQuantity() > 0) {
-                        part.setPartQuantity(part.getPartQuantity() - 1);
-
-                        PartLoad.saveItems("data/updated_data_legacy.txt");
-
-                        tblInventory.refresh();
-                        updateKPIs();
-                        updateLowStockAlerts();
-                    } else {
-                        Alert alert = new Alert(Alert.AlertType.WARNING, "Item is out of stock!", ButtonType.OK);
-                        alert.showAndWait();
-                    }
-                });
-            }
-
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    setGraphic(btnAddToCart);
-                }
-            }
-        });
+        renderGridCards(filtered);
     }
 }

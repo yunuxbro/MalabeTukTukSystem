@@ -11,7 +11,6 @@
 <VBox spacing="15.0" style="-fx-padding: 10;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.malabetuktuk.InventoryController">
     <children>
 
-        <!-- KPI SUMMARY BAR -->
         <HBox spacing="20.0" style="-fx-border-color: #ccc; -fx-padding: 10;">
             <children>
                 <Label style="-fx-font-weight: bold;" text="Total Items:" />
@@ -22,7 +21,6 @@
             </children>
         </HBox>
 
-        <!-- MULTI-CRITERIA FILTER BAR -->
         <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-border-color: #ccc; -fx-padding: 10;">
             <children>
                 <Label text="Category:" />
@@ -44,7 +42,6 @@
             </children>
         </HBox>
 
-        <!-- LOW STOCK WARNING PANEL -->
         <VBox style="-fx-border-color: #ff9999; -fx-background-color: #fff0f0; -fx-padding: 10;">
             <children>
                 <Label style="-fx-font-weight: bold; -fx-text-fill: #cc0000;" text="Low Stock Alerts:" />
@@ -52,7 +49,6 @@
             </children>
         </VBox>
 
-        <!-- GRID/CARD SCROLLABLE CONTAINER -->
         <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
             <content>
                 <VBox fx:id="vboxCategoryContainer" spacing="20.0" style="-fx-padding: 10;" />

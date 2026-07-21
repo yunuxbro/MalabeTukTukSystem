@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox spacing="15.0" style="-fx-padding: 15;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.malabetuktuk.CartController">
+    <children>
+
+        <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+            <children>
+                <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Current Cart Items" />
+
+                <TableView fx:id="tblCart" prefHeight="450.0" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="colPartId" prefWidth="90.0" text="Part ID" />
+                        <TableColumn fx:id="colPartName" prefWidth="180.0" text="Part Name" />
+                        <TableColumn fx:id="colPrice" prefWidth="100.0" text="Unit Price" />
+                        <TableColumn fx:id="colQuantity" prefWidth="80.0" text="Qty" />
+                        <TableColumn fx:id="colTotal" prefWidth="110.0" text="Total" />
+                        <TableColumn fx:id="colAction" prefWidth="90.0" text="Action" />
+                    </columns>
+                </TableView>
+
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <children>
+                        <Button fx:id="btnClearCart" style="-fx-background-color: #ffcccc;" text="Clear Cart" />
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+
+        <VBox prefWidth="300.0" spacing="15.0" style="-fx-border-color: #ccc; -fx-border-radius: 5; -fx-background-color: #f9f9f9; -fx-padding: 15;">
+            <children>
+                <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Checkout Summary" />
+
+                <HBox alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="Subtotal:" HBox.hgrow="ALWAYS" />
+                        <Label fx:id="lblSubtotal" style="-fx-font-weight: bold;" text="Rs. 0.00" />
+                    </children>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <children>
+                        <Label text="Discount (%):" />
+                        <TextField fx:id="txtDiscount" prefWidth="80.0" text="0" />
+                    </children>
+                </HBox>
+
+                <HBox alignment="CENTER_LEFT">
+                    <children>
+                        <Label style="-fx-font-size: 14px; -fx-font-weight: bold;" text="Grand Total:" />
+                        <Label fx:id="lblGrandTotal" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #27ae60;" text="Rs. 0.00" />
+                    </children>
+                </HBox>
+
+                <VBox spacing="5.0">
+                    <children>
+                        <Label text="Payment Method:" />
+                        <ComboBox fx:id="cmbPaymentMethod" maxWidth="1.7976931348623157E308" promptText="Select Payment" />
+                    </children>
+                </VBox>
+
+                <Button fx:id="btnCheckout" maxWidth="1.7976931348623157E308" prefHeight="40.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold;" text="Complete Order" />
+            </children>
+        </VBox>
+
+    </children>
+</HBox>

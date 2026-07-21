@@ -1,30 +1,39 @@
 package org.example.malabetuktuk.blueprints;
 
 public class Cartitems {
-    public class cartitem{
-        private Part part;
-        private int quantity;
+    private Part part;
+    private int orderedQuantity;
 
-        public cartitem(Part part, int quantity){
-            this.part = part;
-            this.quantity = quantity;
-        }
-
-        public Part getPart(){
-            return this.part;
-        }
-        public int getQuantity(){
-            return this.quantity;
-        }
-
-        public void setQuantity(int quantity){
-            this.quantity = quantity;
-        }
-
-        public double getTotalPrice(){
-            return part.getPartPrice()*quantity;
-        }
+    public Cartitems(Part part, int orderedQuantity) {
+        this.part = part;
+        this.orderedQuantity = orderedQuantity;
     }
 
-}
+    public Part getPart() {
+        return part;
+    }
 
+    public String getPartId() {
+        return part.getPartId();
+    }
+
+    public String getPartName() {
+        return part.getPartName();
+    }
+
+    public double getUnitPrice() {
+        return part.getPartPrice();
+    }
+
+    public int getOrderedQuantity() {
+        return orderedQuantity;
+    }
+
+    public void setOrderedQuantity(int orderedQuantity) {
+        this.orderedQuantity = orderedQuantity;
+    }
+
+    public double getTotalPrice() {
+        return part.getPartPrice() * orderedQuantity;
+    }
+}

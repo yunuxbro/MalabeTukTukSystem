@@ -49,7 +49,7 @@ public class InventoryController {
     }
 
     private void refreshScreen() {
-        itemSort.sortInventory(); // Group by Category then sort by ID
+        itemSort.sortInventory();
         renderGridCards(PartLoad.getInventoryList());
         updateKPIs();
         updateLowStockAlerts();
@@ -62,23 +62,19 @@ public class InventoryController {
         FlowPane currentFlowPane = null;
 
         for (Part part : parts) {
-            // Check if we hit a new category group
             if (!part.getPartType().equalsIgnoreCase(currentCategory)) {
                 currentCategory = part.getPartType();
 
-                // Category Header Label
                 Label lblCategoryHeader = new Label("CATEGORY: " + currentCategory.toUpperCase());
                 lblCategoryHeader.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 10 0 5 0; -fx-text-fill: #333;");
                 vboxCategoryContainer.getChildren().add(lblCategoryHeader);
 
-                // FlowPane creates the horizontal grid wrapping
                 currentFlowPane = new FlowPane();
                 currentFlowPane.setHgap(15);
                 currentFlowPane.setVgap(15);
                 vboxCategoryContainer.getChildren().add(currentFlowPane);
             }
 
-            // Build individual Card
             VBox card = createCard(part);
             if (currentFlowPane != null) {
                 currentFlowPane.getChildren().add(card);
@@ -93,7 +89,6 @@ public class InventoryController {
         card.setPrefWidth(160);
         card.setStyle("-fx-border-color: #ccc; -fx-border-radius: 5; -fx-background-color: #fafafa;");
 
-        // 1. Image View
         ImageView imageView = new ImageView();
         imageView.setFitWidth(100);
         imageView.setFitHeight(100);
@@ -115,7 +110,6 @@ public class InventoryController {
         }
         imageView.setImage(img);
 
-        // 2. Information Labels
         Label lblName = new Label(part.getPartName());
         lblName.setStyle("-fx-font-weight: bold; -fx-alignment: center;");
         lblName.setWrapText(true);
@@ -129,7 +123,6 @@ public class InventoryController {
         Label lblPrice = new Label(String.format("Rs. %.2f", part.getPartPrice()));
         lblPrice.setStyle("-fx-font-weight: bold; -fx-text-fill: #2a72d0;");
 
-        // 3. Add to Cart Button
         Button btnAddToCart = new Button("Add to Cart");
         btnAddToCart.setOnAction(e -> {
             if (part.getPartQuantity() > 0) {

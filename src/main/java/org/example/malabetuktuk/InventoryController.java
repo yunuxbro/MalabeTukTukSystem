@@ -12,6 +12,7 @@ import org.example.malabetuktuk.blueprints.Part;
 import org.example.malabetuktuk.loadFiles.PartLoad;
 import org.example.malabetuktuk.POS.InventoryFilter;
 import org.example.malabetuktuk.POS.LowStock;
+import org.example.malabetuktuk.POS.managerClass;
 import org.example.malabetuktuk.sorts.itemSort;
 
 import java.io.File;
@@ -30,6 +31,7 @@ public class InventoryController {
     @FXML private Label lblLowStockItems;
 
     @FXML private VBox vboxCategoryContainer;
+    @FXML private VBox cardTemplate;
 
     @FXML
     public void initialize() {
@@ -40,6 +42,10 @@ public class InventoryController {
         if (cmbCategory.getItems().isEmpty()) {
             cmbCategory.getItems().addAll("All", "ENGINE", "ELECTRICAL", "BODY", "BRAKE");
             cmbCategory.setValue("All");
+        }
+
+        if (cardTemplate != null) {
+            vboxCategoryContainer.getChildren().remove(cardTemplate);
         }
 
         refreshScreen();
@@ -75,14 +81,14 @@ public class InventoryController {
                 vboxCategoryContainer.getChildren().add(currentFlowPane);
             }
 
-            VBox card = createCard(part);
+            VBox card = cloneAndBindCard(part);
             if (currentFlowPane != null) {
                 currentFlowPane.getChildren().add(card);
             }
         }
     }
 
-    private VBox createCard(Part part) {
+    private VBox cloneAndBindCard(Part part) {
         VBox card = new VBox(8);
         card.setAlignment(Pos.CENTER);
         card.setPadding(new Insets(10));
@@ -126,7 +132,12 @@ public class InventoryController {
         Button btnAddToCart = new Button("Add to Cart");
         btnAddToCart.setOnAction(e -> {
             if (part.getPartQuantity() > 0) {
+                // Decrement stock in catalog memory
                 part.setPartQuantity(part.getPartQuantity() - 1);
+
+                // Track item transaction in active global POS checkout list
+                managerClass.addToCart(part);
+
                 PartLoad.saveItems("data/updated_data_legacy.txt");
                 refreshScreen();
             } else {
@@ -187,7 +198,6 @@ public class InventoryController {
                 maxPrice = Double.parseDouble(txtMaxPrice.getText().trim());
             }
         } catch (NumberFormatException e) {
-            // Keep default limits on error
         }
 
         ArrayList<Part> filtered = InventoryFilter.filter(category, minPrice, maxPrice, keyword);

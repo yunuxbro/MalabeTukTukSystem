@@ -20,6 +20,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import org.example.malabetuktuk.CRUD.DeleteItem;
 import org.example.malabetuktuk.blueprints.Part;
 import org.example.malabetuktuk.loadFiles.PartLoad;
 import org.example.malabetuktuk.POS.InventoryFilter;
@@ -336,6 +337,22 @@ public class InventoryController {
         Scene scene = new Scene(grid);
         popupStage.setScene(scene);
         popupStage.showAndWait();
+        Button btnDelete = new Button("Delete Part");
+        btnDelete.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;");
+
+        btnDelete.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you want to delete " + part.getPartName() + "?", ButtonType.YES, ButtonType.NO);
+                confirm.showAndWait();
+
+                if (confirm.getResult() == ButtonType.YES) {
+                    DeleteItem.executeDelete(part.getPartId(), "data/updated_data_legacy.txt");
+                    refreshScreen();
+                    popupStage.close();
+                }
+            }
+        });
     }
 
     private void updateKPIs() {

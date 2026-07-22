@@ -1,5 +1,6 @@
 package org.example.malabetuktuk.CRUD;
 
+import org.example.malabetuktuk.POS.managerClass;
 import org.example.malabetuktuk.blueprints.Part;
 import org.example.malabetuktuk.loadFiles.PartLoad;
 
@@ -9,6 +10,7 @@ public class AddItem {
             Part newPart = new Part(partId, partName, partBrand, partPrice, partQuantity, partType, addedDate, imagePath);
             PartLoad.getInventoryList().add(newPart);
             PartLoad.saveItems(filePath);
+            managerClass.logAuditAction("ADD_PART", partId, partQuantity, "Added new part: " + partName);
             return true;
         } catch(Exception e) {
             return false;

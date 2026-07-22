@@ -45,7 +45,7 @@ public class managerClass {
         boolean hasElectrical = false;
 
         for (Cartitems item : activeCart) {
-            String type = item.getpartType().trim().toUpperCase();
+            String type = item.getPart().getPartType().trim().toUpperCase();
             if (type.equals("ENGINE")) {
                 hasEngine = true;
             }

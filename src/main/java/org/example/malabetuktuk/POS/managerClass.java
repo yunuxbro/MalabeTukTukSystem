@@ -36,10 +36,36 @@ public class managerClass {
     }
 
     public static double calculateSubtotal() {
+        ArrayList<Part> uniParts =  new ArrayList<>();
+        ArrayList<Integer> quantity = new ArrayList<>();
         double subtotal = 0.0;
+        boolean hasEngine = false;
+        boolean hasElectrical = false;
         for (Cartitems item : activeCart) {
-            subtotal += item.getTotalPrice();
+            String type = item.getpartType().trim().toUpperCase();
+            if (type.equals("ENGINE")) {
+                hasEngine = true;
+            }
+            if (type.equals("ELECTRICAL")) {
+                hasElectrical = true;
+            }
+            int index = -1;
+            for (int i = 0; i < quantity.size(); i++) {
+                if (quantity.get(i) == item.getOrderedQuantity()) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index != -1) {
+                quantity.set(index, quantity.get(index) + 1);
+            }
+            else {
+                uniParts.add(item.getPart());
+                quantity.add(1);
+
+            }
         }
+
         return subtotal;
     }
 

@@ -1,21 +1,25 @@
 package org.example.malabetuktuk;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.example.malabetuktuk.blueprints.Part;
 import org.example.malabetuktuk.loadFiles.PartLoad;
 import org.example.malabetuktuk.POS.InventoryFilter;
@@ -38,7 +42,17 @@ public class InventoryController {
     @FXML private TextField txtThreshold;
     @FXML private Label lblLowStockItems;
 
-    @FXML private VBox vboxCategoryContainer;
+    @FXML private TableView<Part> tblInventory;
+    @FXML private TableColumn<Part, Void> colImg;
+    @FXML private TableColumn<Part, String> colId;
+    @FXML private TableColumn<Part, String> colName;
+    @FXML private TableColumn<Part, String> colCategory;
+    @FXML private TableColumn<Part, String> colBrand;
+    @FXML private TableColumn<Part, Double> colPrice;
+    @FXML private TableColumn<Part, Integer> colQty;
+    @FXML private TableColumn<Part, Void> colAction;
+
+    private final ObservableList<Part> inventoryData = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
@@ -51,192 +65,174 @@ public class InventoryController {
             cmbCategory.setValue("All");
         }
 
+        setupTableColumns();
         refreshScreen();
 
-        btnSearch.setOnAction(e -> applyFilter());
-        txtThreshold.textProperty().addListener((obs, oldVal, newVal) -> updateLowStockAlerts());
+        btnSearch.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                applyFilter();
+            }
+        });
+
+        txtThreshold.textProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                updateLowStockAlerts();
+            }
+        });
+    }
+
+    private void setupTableColumns() {
+        colId.setCellValueFactory(new PropertyValueFactory<Part, String>("partId"));
+        colName.setCellValueFactory(new PropertyValueFactory<Part, String>("partName"));
+        colCategory.setCellValueFactory(new PropertyValueFactory<Part, String>("partType"));
+        colBrand.setCellValueFactory(new PropertyValueFactory<Part, String>("partBrand"));
+        colPrice.setCellValueFactory(new PropertyValueFactory<Part, Double>("partPrice"));
+        colQty.setCellValueFactory(new PropertyValueFactory<Part, Integer>("partQuantity"));
+
+        colImg.setCellFactory(new Callback<TableColumn<Part, Void>, TableCell<Part, Void>>() {
+            @Override
+            public TableCell<Part, Void> call(TableColumn<Part, Void> param) {
+                return new TableCell<Part, Void>() {
+                    private final ImageView imageView = new ImageView();
+                    {
+                        imageView.setFitWidth(45);
+                        imageView.setFitHeight(45);
+                        imageView.setPreserveRatio(true);
+                    }
+
+                    @Override
+                    protected void updateItem(Void item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || getIndex() >= getTableView().getItems().size()) {
+                            setGraphic(null);
+                        } else {
+                            Part part = getTableView().getItems().get(getIndex());
+                            String path = part.getImagePath();
+                            Image img = null;
+
+                            if (path != null && !path.equals("null") && !path.trim().isEmpty()) {
+                                File file = new File(path);
+                                if (!file.exists()) file = new File("data/" + path);
+                                if (!file.exists()) file = new File("data/images/" + path);
+
+                                if (file.exists()) {
+                                    img = new Image(file.toURI().toString(), 45, 45, true, true);
+                                }
+                            }
+                            if (img == null) {
+                                img = new Image("https://via.placeholder.com/45?text=No+Img", 45, 45, true, true);
+                            }
+                            imageView.setImage(img);
+                            setGraphic(imageView);
+                        }
+                    }
+                };
+            }
+        });
+
+        colAction.setCellFactory(new Callback<TableColumn<Part, Void>, TableCell<Part, Void>>() {
+            @Override
+            public TableCell<Part, Void> call(TableColumn<Part, Void> param) {
+                return new TableCell<Part, Void>() {
+                    private final Button btnEdit = new Button("View/Edit");
+                    private final Button btnAdd = new Button("Add to Cart");
+                    private final Spinner<Integer> qtySpinner = new Spinner<Integer>(1, 1, 1);
+                    private final HBox box = new HBox(5, qtySpinner, btnAdd, btnEdit);
+
+                    {
+                        qtySpinner.setPrefWidth(65);
+                        qtySpinner.setEditable(true);
+
+                        btnEdit.setOnAction(new EventHandler<ActionEvent>() {
+                            @Override
+                            public void handle(ActionEvent event) {
+                                Part part = getTableView().getItems().get(getIndex());
+                                openEditWindow(part);
+                            }
+                        });
+
+                        btnAdd.setOnAction(new EventHandler<ActionEvent>() {
+                            @Override
+                            public void handle(ActionEvent event) {
+                                Part part = getTableView().getItems().get(getIndex());
+                                int requestedQty = qtySpinner.getValue();
+
+                                if (part.getPartQuantity() >= requestedQty && requestedQty > 0) {
+                                    part.setPartQuantity(part.getPartQuantity() - requestedQty);
+
+                                    for (int i = 0; i < requestedQty; i++) {
+                                        managerClass.addToCart(part);
+                                    }
+
+                                    PartLoad.saveItems("data/updated_data_legacy.txt");
+                                    refreshScreen();
+                                } else {
+                                    Alert alert = new Alert(Alert.AlertType.WARNING,
+                                            "Requested quantity exceeds stock (" + part.getPartQuantity() + ")!",
+                                            ButtonType.OK);
+                                    alert.showAndWait();
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    protected void updateItem(Void item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty || getIndex() >= getTableView().getItems().size()) {
+                            setGraphic(null);
+                        } else {
+                            Part part = getTableView().getItems().get(getIndex());
+                            int currentStock = part.getPartQuantity();
+
+                            if (currentStock > 0) {
+                                SpinnerValueFactory<Integer> valueFactory =
+                                        new SpinnerValueFactory.IntegerSpinnerValueFactory(1, currentStock, 1);
+                                qtySpinner.setValueFactory(valueFactory);
+                                qtySpinner.setDisable(false);
+                                btnAdd.setDisable(false);
+                            } else {
+                                qtySpinner.setDisable(true);
+                                btnAdd.setDisable(true);
+                            }
+
+                            setGraphic(box);
+                        }
+                    }
+                };
+            }
+        });
+
+        tblInventory.setRowFactory(new Callback<TableView<Part>, TableRow<Part>>() {
+            @Override
+            public TableRow<Part> call(TableView<Part> param) {
+                final TableRow<Part> row = new TableRow<Part>();
+                row.setOnMouseClicked(new EventHandler<MouseEvent>() {
+                    @Override
+                    public void handle(MouseEvent event) {
+                        if (event.getClickCount() == 2 && (!row.isEmpty())) {
+                            Part rowData = row.getItem();
+                            openEditWindow(rowData);
+                        }
+                    }
+                });
+                return row;
+            }
+        });
     }
 
     private void refreshScreen() {
         itemSort.sortInventory();
-        renderCategoryTables(PartLoad.getInventoryList());
+        inventoryData.setAll(PartLoad.getInventoryList());
+        tblInventory.setItems(inventoryData);
+
         updateKPIs();
         updateLowStockAlerts();
     }
 
-    private void renderCategoryTables(ArrayList<Part> parts) {
-        vboxCategoryContainer.getChildren().clear();
-
-        String currentCategory = "";
-        ArrayList<Part> categoryGroup = new ArrayList<>();
-
-        for (Part part : parts) {
-            if (!part.getPartType().equalsIgnoreCase(currentCategory)) {
-                if (!categoryGroup.isEmpty()) {
-                    addCategorySection(currentCategory, categoryGroup);
-                    categoryGroup = new ArrayList<>();
-                }
-                currentCategory = part.getPartType();
-            }
-            categoryGroup.add(part);
-        }
-
-        if (!categoryGroup.isEmpty()) {
-            addCategorySection(currentCategory, categoryGroup);
-        }
-    }
-
-    private void addCategorySection(String categoryName, ArrayList<Part> parts) {
-        Label lblCategoryHeader = new Label("CATEGORY: " + categoryName.toUpperCase());
-        lblCategoryHeader.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 10 0 5 0; -fx-text-fill: #2c3e50;");
-
-        TableView<Part> table = createCategoryTable(parts);
-
-        VBox sectionBox = new VBox(5, lblCategoryHeader, table);
-        vboxCategoryContainer.getChildren().add(sectionBox);
-    }
-
-    private TableView<Part> createCategoryTable(ArrayList<Part> parts) {
-        TableView<Part> table = new TableView<>();
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        table.setPrefHeight(Math.min(parts.size() * 55 + 35, 300));
-
-        TableColumn<Part, Void> colImg = new TableColumn<>("Image");
-        colImg.setPrefWidth(60);
-        colImg.setCellFactory(param -> new TableCell<>() {
-            private final ImageView imageView = new ImageView();
-            {
-                imageView.setFitWidth(45);
-                imageView.setFitHeight(45);
-                imageView.setPreserveRatio(true);
-            }
-
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || getIndex() >= getTableView().getItems().size()) {
-                    setGraphic(null);
-                } else {
-                    Part part = getTableView().getItems().get(getIndex());
-                    String path = part.getImagePath();
-                    Image img = null;
-
-                    if (path != null && !path.equals("null") && !path.trim().isEmpty()) {
-                        File file = new File(path);
-                        if (!file.exists()) file = new File("data/" + path);
-                        if (!file.exists()) file = new File("data/images/" + path);
-
-                        if (file.exists()) {
-                            img = new Image(file.toURI().toString(), 45, 45, true, true);
-                        }
-                    }
-                    if (img == null) {
-                        img = new Image("https://via.placeholder.com/45?text=No+Img", 45, 45, true, true);
-                    }
-                    imageView.setImage(img);
-                    setGraphic(imageView);
-                }
-            }
-        });
-
-        TableColumn<Part, String> colId = new TableColumn<>("Part ID");
-        colId.setCellValueFactory(new PropertyValueFactory<>("partId"));
-
-        TableColumn<Part, String> colName = new TableColumn<>("Part Name");
-        colName.setCellValueFactory(new PropertyValueFactory<>("partName"));
-
-        TableColumn<Part, String> colBrand = new TableColumn<>("Brand");
-        colBrand.setCellValueFactory(new PropertyValueFactory<>("partBrand"));
-
-        TableColumn<Part, Double> colPrice = new TableColumn<>("Price");
-        colPrice.setCellValueFactory(new PropertyValueFactory<>("partPrice"));
-
-        TableColumn<Part, Integer> colQty = new TableColumn<>("Stock Qty");
-        colQty.setCellValueFactory(new PropertyValueFactory<>("partQuantity"));
-
-        TableColumn<Part, Void> colAction = new TableColumn<>("Actions");
-        colAction.setPrefWidth(220);
-        colAction.setCellFactory(param -> new TableCell<>() {
-            private final Button btnEdit = new Button("View/Edit");
-            private final Button btnAdd = new Button("Add to Cart");
-            private final Spinner<Integer> qtySpinner = new Spinner<>(1, 1, 1);
-            private final HBox box = new HBox(5, qtySpinner, btnAdd, btnEdit);
-
-            {
-                qtySpinner.setPrefWidth(65);
-                qtySpinner.setEditable(true);
-
-                btnEdit.setOnAction(e -> {
-                    Part part = getTableView().getItems().get(getIndex());
-                    openEditWindow(part);
-                });
-
-                btnAdd.setOnAction(e -> {
-                    Part part = getTableView().getItems().get(getIndex());
-                    int requestedQty = qtySpinner.getValue();
-
-                    if (part.getPartQuantity() >= requestedQty && requestedQty > 0) {
-                        part.setPartQuantity(part.getPartQuantity() - requestedQty);
-
-                        for (int i = 0; i < requestedQty; i++) {
-                            managerClass.addToCart(part);
-                        }
-
-                        PartLoad.saveItems("data/updated_data_legacy.txt");
-                        refreshScreen();
-                    } else {
-                        Alert alert = new Alert(Alert.AlertType.WARNING,
-                                "Requested quantity exceeds stock (" + part.getPartQuantity() + ")!",
-                                ButtonType.OK);
-                        alert.showAndWait();
-                    }
-                });
-            }
-
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || getIndex() >= getTableView().getItems().size()) {
-                    setGraphic(null);
-                } else {
-                    Part part = getTableView().getItems().get(getIndex());
-                    int currentStock = part.getPartQuantity();
-
-                    if (currentStock > 0) {
-                        SpinnerValueFactory<Integer> valueFactory =
-                                new SpinnerValueFactory.IntegerSpinnerValueFactory(1, currentStock, 1);
-                        qtySpinner.setValueFactory(valueFactory);
-                        qtySpinner.setDisable(false);
-                        btnAdd.setDisable(false);
-                    } else {
-                        qtySpinner.setDisable(true);
-                        btnAdd.setDisable(true);
-                    }
-
-                    setGraphic(box);
-                }
-            }
-        });
-
-        table.getColumns().addAll(colImg, colId, colName, colBrand, colPrice, colQty, colAction);
-        ObservableList<Part> observableParts = FXCollections.observableArrayList(parts);
-        table.setItems(observableParts);
-
-        table.setRowFactory(tv -> {
-            TableRow<Part> row = new TableRow<>();
-            row.setOnMouseClicked(event -> {
-                if (event.getClickCount() == 2 && (!row.isEmpty())) {
-                    Part rowData = row.getItem();
-                    openEditWindow(rowData);
-                }
-            });
-            return row;
-        });
-
-        return table;
-    }
-
-    private void openEditWindow(Part part) {
+    private void openEditWindow(final Part part) {
         Stage popupStage = new Stage();
         popupStage.initModality(Modality.APPLICATION_MODAL);
         popupStage.setTitle("Product Details - " + part.getPartName());
@@ -246,7 +242,7 @@ public class InventoryController {
         grid.setVgap(10);
         grid.setPadding(new Insets(15));
 
-        ImageView imgView = new ImageView();
+        final ImageView imgView = new ImageView();
         imgView.setFitWidth(120);
         imgView.setFitHeight(120);
         imgView.setPreserveRatio(true);
@@ -261,27 +257,30 @@ public class InventoryController {
             }
         }
 
-        TextField txtImgPath = new TextField(part.getImagePath());
+        final TextField txtImgPath = new TextField(part.getImagePath());
         Button btnBrowse = new Button("Browse Image...");
 
-        btnBrowse.setOnAction(e -> {
-            FileChooser chooser = new FileChooser();
-            chooser.setTitle("Select Product Image");
-            chooser.getExtensionFilters().add(
-                    new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.webp")
-            );
-            File selectedFile = chooser.showOpenDialog(popupStage);
-            if (selectedFile != null) {
-                txtImgPath.setText(selectedFile.getName());
-                imgView.setImage(new Image(selectedFile.toURI().toString(), 120, 120, true, true));
+        btnBrowse.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                FileChooser chooser = new FileChooser();
+                chooser.setTitle("Select Product Image");
+                chooser.getExtensionFilters().add(
+                        new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.webp")
+                );
+                File selectedFile = chooser.showOpenDialog(popupStage);
+                if (selectedFile != null) {
+                    txtImgPath.setText(selectedFile.getName());
+                    imgView.setImage(new Image(selectedFile.toURI().toString(), 120, 120, true, true));
+                }
             }
         });
 
-        TextField txtName = new TextField(part.getPartName());
-        TextField txtType = new TextField(part.getPartType());
-        TextField txtBrand = new TextField(part.getPartBrand());
-        TextField txtPrice = new TextField(String.valueOf(part.getPartPrice()));
-        TextField txtQty = new TextField(String.valueOf(part.getPartQuantity()));
+        final TextField txtName = new TextField(part.getPartName());
+        final TextField txtType = new TextField(part.getPartType());
+        final TextField txtBrand = new TextField(part.getPartBrand());
+        final TextField txtPrice = new TextField(String.valueOf(part.getPartPrice()));
+        final TextField txtQty = new TextField(String.valueOf(part.getPartQuantity()));
 
         grid.add(new Label("Image Preview:"), 0, 0);
         grid.add(imgView, 1, 0);
@@ -311,21 +310,24 @@ public class InventoryController {
         Button btnSave = new Button("Save Changes");
         btnSave.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold;");
 
-        btnSave.setOnAction(e -> {
-            try {
-                part.setPartName(txtName.getText().trim());
-                part.setPartType(txtType.getText().trim());
-                part.setPartBrand(txtBrand.getText().trim());
-                part.setPartPrice(Double.parseDouble(txtPrice.getText().trim()));
-                part.setPartQuantity(Integer.parseInt(txtQty.getText().trim()));
-                part.setImagePath(txtImgPath.getText().trim());
+        btnSave.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    part.setPartName(txtName.getText().trim());
+                    part.setPartType(txtType.getText().trim());
+                    part.setPartBrand(txtBrand.getText().trim());
+                    part.setPartPrice(Double.parseDouble(txtPrice.getText().trim()));
+                    part.setPartQuantity(Integer.parseInt(txtQty.getText().trim()));
+                    part.setImagePath(txtImgPath.getText().trim());
 
-                PartLoad.saveItems("data/updated_data_legacy.txt");
-                refreshScreen();
-                popupStage.close();
-            } catch (NumberFormatException ex) {
-                Alert alert = new Alert(Alert.AlertType.ERROR, "Invalid price or quantity number formatting!", ButtonType.OK);
-                alert.showAndWait();
+                    PartLoad.saveItems("data/updated_data_legacy.txt");
+                    refreshScreen();
+                    popupStage.close();
+                } catch (NumberFormatException ex) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Invalid price or quantity number formatting!", ButtonType.OK);
+                    alert.showAndWait();
+                }
             }
         });
 
@@ -387,6 +389,7 @@ public class InventoryController {
         }
 
         ArrayList<Part> filtered = InventoryFilter.filter(category, minPrice, maxPrice, keyword);
-        renderCategoryTables(filtered);
+        inventoryData.setAll(filtered);
+        tblInventory.setItems(inventoryData);
     }
 }

@@ -32,8 +32,15 @@ public class Cartitems {
     public void setOrderedQuantity(int orderedQuantity) {
         this.orderedQuantity = orderedQuantity;
     }
+    public String getpartType() {
+        return part.getPartType();
+    }
+
+
 
     public double getTotalPrice() {
         return part.getPartPrice() * orderedQuantity;
     }
+
+
 }

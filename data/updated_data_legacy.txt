@@ -1,4 +1,4 @@
-P003,205/50-10 Tyre,null,6500.0,23,BODYWORK,Oct 15, 2023,null
+P003,205/50-10 Tyre,null,6500.0,24,BODYWORK,Oct 15, 2023,null
 P007,3-Wheeler Canopy Cover,Local,8500.5,5,BODYWORK,15-Aug-2023,canopy.png
 P010,Rear View Mirror,null,800.0,45,BODYWORK,10/10/2023,mirror.png
 P002,TVS King Brake Pad,TVS,1250.0,8,BRAKES,12/05/2023,brakepad.png

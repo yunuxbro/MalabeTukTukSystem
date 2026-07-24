@@ -20,7 +20,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
-import org.example.malabetuktuk.CRUD.DeleteItem;
 import org.example.malabetuktuk.blueprints.Part;
 import org.example.malabetuktuk.loadFiles.PartLoad;
 import org.example.malabetuktuk.POS.InventoryFilter;
@@ -29,6 +28,8 @@ import org.example.malabetuktuk.POS.managerClass;
 import org.example.malabetuktuk.sorts.itemSort;
 
 import java.io.File;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class InventoryController {
@@ -40,6 +41,7 @@ public class InventoryController {
     @FXML private TextField txtMaxPrice;
     @FXML private TextField txtKeyword;
     @FXML private Button btnSearch;
+    @FXML private Button btnAddItem;
     @FXML private TextField txtThreshold;
     @FXML private Label lblLowStockItems;
 
@@ -73,6 +75,13 @@ public class InventoryController {
             @Override
             public void handle(ActionEvent event) {
                 applyFilter();
+            }
+        });
+
+        btnAddItem.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                openAddWindow();
             }
         });
 
@@ -233,6 +242,130 @@ public class InventoryController {
         updateLowStockAlerts();
     }
 
+    private void openAddWindow() {
+        Stage popupStage = new Stage();
+        popupStage.initModality(Modality.APPLICATION_MODAL);
+        popupStage.setTitle("Add New Inventory Item");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(15));
+
+        final ImageView imgView = new ImageView();
+        imgView.setFitWidth(100);
+        imgView.setFitHeight(100);
+        imgView.setPreserveRatio(true);
+
+        final TextField txtId = new TextField();
+        final TextField txtName = new TextField();
+        final TextField txtBrand = new TextField();
+        final TextField txtPrice = new TextField();
+        final TextField txtQty = new TextField();
+        final TextField txtType = new TextField();
+
+        // Auto-fill current date/time, but allow custom editing
+        String currentFormattedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd, HH:mm"));
+        final TextField txtDate = new TextField(currentFormattedDate);
+        final TextField txtImgPath = new TextField("null");
+
+        Button btnBrowse = new Button("Browse...");
+        btnBrowse.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                FileChooser chooser = new FileChooser();
+                chooser.setTitle("Select Product Image");
+                chooser.getExtensionFilters().add(
+                        new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.webp")
+                );
+                File selectedFile = chooser.showOpenDialog(popupStage);
+                if (selectedFile != null) {
+                    txtImgPath.setText(selectedFile.getName());
+                    imgView.setImage(new Image(selectedFile.toURI().toString(), 100, 100, true, true));
+                }
+            }
+        });
+
+        grid.add(new Label("Part ID:"), 0, 0);
+        grid.add(txtId, 1, 0);
+
+        grid.add(new Label("Part Name:"), 0, 1);
+        grid.add(txtName, 1, 1);
+
+        grid.add(new Label("Brand:"), 0, 2);
+        grid.add(txtBrand, 1, 2);
+
+        grid.add(new Label("Price (Rs.):"), 0, 3);
+        grid.add(txtPrice, 1, 3);
+
+        grid.add(new Label("Stock Quantity:"), 0, 4);
+        grid.add(txtQty, 1, 4);
+
+        grid.add(new Label("Category Type:"), 0, 5);
+        grid.add(txtType, 1, 5);
+
+        grid.add(new Label("Date Added:"), 0, 6);
+        grid.add(txtDate, 1, 6);
+
+        grid.add(new Label("Image Path:"), 0, 7);
+        HBox imgBox = new HBox(5, txtImgPath, btnBrowse);
+        grid.add(imgBox, 1, 7);
+
+        grid.add(new Label("Image Preview:"), 0, 8);
+        grid.add(imgView, 1, 8);
+
+        Button btnSubmit = new Button("Add Item");
+        btnSubmit.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold;");
+
+        btnSubmit.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                try {
+                    String partId = txtId.getText().trim();
+                    String name = txtName.getText().trim();
+                    String brand = txtBrand.getText().trim();
+                    String type = txtType.getText().trim().toUpperCase();
+                    String date = PartLoad.normalizeDate(txtDate.getText().trim());
+                    String imgPath = txtImgPath.getText().trim();
+
+                    if (partId.isEmpty() || name.isEmpty() || brand.isEmpty() || type.isEmpty()) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR, "Please fill in all required fields!", ButtonType.OK);
+                        alert.showAndWait();
+                        return;
+                    }
+
+                    // Check duplicate ID
+                    for (Part p : PartLoad.getInventoryList()) {
+                        if (p.getPartId().equalsIgnoreCase(partId)) {
+                            Alert alert = new Alert(Alert.AlertType.ERROR, "Part ID already exists!", ButtonType.OK);
+                            alert.showAndWait();
+                            return;
+                        }
+                    }
+
+                    double price = Double.parseDouble(txtPrice.getText().trim());
+                    int qty = Integer.parseInt(txtQty.getText().trim());
+
+                    Part newPart = new Part(partId, name, brand, price, qty, type, date, imgPath.isEmpty() ? "null" : imgPath);
+                    PartLoad.getInventoryList().add(newPart);
+                    PartLoad.saveItems("data/updated_data_legacy.txt");
+
+                    refreshScreen();
+                    popupStage.close();
+                } catch (NumberFormatException ex) {
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Invalid price or quantity formatting!", ButtonType.OK);
+                    alert.showAndWait();
+                }
+            }
+        });
+
+        grid.add(btnSubmit, 1, 9);
+
+        Scene scene = new Scene(grid);
+        popupStage.setScene(scene);
+        popupStage.showAndWait();
+    }
+
     private void openEditWindow(final Part part) {
         Stage popupStage = new Stage();
         popupStage.initModality(Modality.APPLICATION_MODAL);
@@ -282,6 +415,7 @@ public class InventoryController {
         final TextField txtBrand = new TextField(part.getPartBrand());
         final TextField txtPrice = new TextField(String.valueOf(part.getPartPrice()));
         final TextField txtQty = new TextField(String.valueOf(part.getPartQuantity()));
+        final TextField txtDate = new TextField(part.getAddedDate());
 
         grid.add(new Label("Image Preview:"), 0, 0);
         grid.add(imgView, 1, 0);
@@ -308,6 +442,9 @@ public class InventoryController {
         grid.add(new Label("Stock Quantity:"), 0, 7);
         grid.add(txtQty, 1, 7);
 
+        grid.add(new Label("Date Added:"), 0, 8);
+        grid.add(txtDate, 1, 8);
+
         Button btnSave = new Button("Save Changes");
         btnSave.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold;");
 
@@ -316,27 +453,23 @@ public class InventoryController {
             public void handle(ActionEvent event) {
                 try {
                     part.setPartName(txtName.getText().trim());
-                    part.setPartType(txtType.getText().trim());
+                    part.setPartType(txtType.getText().trim().toUpperCase());
                     part.setPartBrand(txtBrand.getText().trim());
                     part.setPartPrice(Double.parseDouble(txtPrice.getText().trim()));
                     part.setPartQuantity(Integer.parseInt(txtQty.getText().trim()));
+                    part.setAddedDate(PartLoad.normalizeDate(txtDate.getText().trim()));
                     part.setImagePath(txtImgPath.getText().trim());
 
                     PartLoad.saveItems("data/updated_data_legacy.txt");
                     refreshScreen();
                     popupStage.close();
                 } catch (NumberFormatException ex) {
-                    Alert alert = new Alert(Alert.AlertType.ERROR, "Invalid price or quantity number formatting!", ButtonType.OK);
+                    Alert alert = new Alert(Alert.AlertType.ERROR, "Invalid price or quantity formatting!", ButtonType.OK);
                     alert.showAndWait();
                 }
             }
         });
 
-        grid.add(btnSave, 1, 8);
-
-        Scene scene = new Scene(grid);
-        popupStage.setScene(scene);
-        popupStage.showAndWait();
         Button btnDelete = new Button("Delete Part");
         btnDelete.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;");
 
@@ -347,12 +480,20 @@ public class InventoryController {
                 confirm.showAndWait();
 
                 if (confirm.getResult() == ButtonType.YES) {
-                    DeleteItem.executeDelete(part.getPartId(), "data/updated_data_legacy.txt");
+                    PartLoad.getInventoryList().remove(part);
+                    PartLoad.saveItems("data/updated_data_legacy.txt");
                     refreshScreen();
                     popupStage.close();
                 }
             }
         });
+
+        HBox actionBox = new HBox(10, btnSave, btnDelete);
+        grid.add(actionBox, 1, 9);
+
+        Scene scene = new Scene(grid);
+        popupStage.setScene(scene);
+        popupStage.showAndWait();
     }
 
     private void updateKPIs() {

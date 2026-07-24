@@ -5,7 +5,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
@@ -35,7 +34,7 @@
             </children>
         </VBox>
 
-        <VBox prefWidth="300.0" spacing="15.0" style="-fx-border-color: #ccc; -fx-border-radius: 5; -fx-background-color: #f9f9f9; -fx-padding: 15;">
+        <VBox prefWidth="320.0" spacing="15.0" style="-fx-border-color: #ccc; -fx-border-radius: 5; -fx-background-color: #f9f9f9; -fx-padding: 15;">
             <children>
                 <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Checkout Summary" />
 
@@ -46,12 +45,18 @@
                     </children>
                 </HBox>
 
-                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                <VBox spacing="5.0" style="-fx-background-color: #eef9f2; -fx-padding: 10; -fx-border-color: #c8e6c9; -fx-border-radius: 3;">
                     <children>
-                        <Label text="Discount (%):" />
-                        <TextField fx:id="txtDiscount" prefWidth="80.0" text="0" />
+                        <Label style="-fx-font-weight: bold; -fx-text-fill: #2e7d32;" text="Applied Discounts:" />
+                        <Label fx:id="lblDiscountType" style="-fx-font-size: 12px; -fx-text-fill: #333;" text="None" wrapText="true" />
+                        <HBox alignment="CENTER_LEFT">
+                            <children>
+                                <Label style="-fx-font-size: 12px;" text="Total Discount: " />
+                                <Label fx:id="lblDiscountAmount" style="-fx-font-weight: bold; -fx-text-fill: #c62828;" text="- Rs. 0.00" />
+                            </children>
+                        </HBox>
                     </children>
-                </HBox>
+                </VBox>
 
                 <HBox alignment="CENTER_LEFT">
                     <children>

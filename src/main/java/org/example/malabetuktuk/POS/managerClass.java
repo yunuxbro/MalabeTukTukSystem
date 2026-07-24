@@ -10,18 +10,67 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 
 public class managerClass {
 
-    private static final ArrayList<Cartitems> activeCart = new ArrayList<>();
+    private static List<Cartitems> activeCart = new ArrayList<>();
 
-    public static ArrayList<Cartitems> getCart() {
+    public static List<Cartitems> getCart() {
         return activeCart;
+    }
+
+    public static boolean validatePartData(String id, String name, String brand, String priceStr, String qtyStr, String type) {
+        if (id == null || id.trim().isEmpty()) return false;
+        if (name == null || name.trim().isEmpty()) return false;
+        if (brand == null || brand.trim().isEmpty()) return false;
+        if (type == null || type.trim().isEmpty()) return false;
+
+        try {
+            double price = Double.parseDouble(priceStr.trim());
+            if (price <= 0) return false;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        try {
+            int qty = Integer.parseInt(qtyStr.trim());
+            if (qty < 0) return false;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static boolean validateSearchInputs(String minPriceStr, String maxPriceStr, String thresholdStr) {
+        try {
+            double minPrice = Double.parseDouble(minPriceStr.trim());
+            double maxPrice = Double.parseDouble(maxPriceStr.trim());
+            if (minPrice < 0 || maxPrice < 0 || minPrice > maxPrice) return false;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        try {
+            int threshold = Integer.parseInt(thresholdStr.trim());
+            if (threshold < 0) return false;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public static boolean validateAddToCart(Part part, int requestedQty) {
+        if (part == null) return false;
+        if (requestedQty <= 0) return false;
+        return part.getPartQuantity() >= requestedQty;
     }
 
     public static void addToCart(Part part) {
         for (Cartitems item : activeCart) {
-            if (item.getPartId().equalsIgnoreCase(part.getPartId())) {
+            if (item.getPart().getPartId().equals(part.getPartId())) {
                 item.setOrderedQuantity(item.getOrderedQuantity() + 1);
                 return;
             }
@@ -40,46 +89,41 @@ public class managerClass {
     }
 
     public static double calculateSubtotal() {
-        double subtotal = 0.0;
+        double total = 0;
+        for (Cartitems item : activeCart) {
+            double itemTotal = item.getPart().getPartPrice() * item.getOrderedQuantity();
+            if (item.getOrderedQuantity() >= 3) {
+                itemTotal *= 0.95;
+            }
+            total += itemTotal;
+        }
+
         boolean hasEngine = false;
         boolean hasElectrical = false;
 
         for (Cartitems item : activeCart) {
-            String type = item.getPart().getPartType().trim().toUpperCase();
-            if (type.equals("ENGINE")) {
+            String cat = item.getPart().getPartType().toLowerCase();
+            if (cat.contains("engine")) {
                 hasEngine = true;
             }
-            if (type.equals("ELECTRICAL")) {
+            if (cat.contains("electrical") || cat.contains("electric")) {
                 hasElectrical = true;
             }
-
-            int qty = item.getOrderedQuantity();
-            double lineTotal = item.getPart().getPartPrice() * qty;
-
-            if (qty >= 3) {
-                lineTotal = lineTotal * 0.95;
-            }
-
-            subtotal += lineTotal;
         }
 
         if (hasEngine && hasElectrical) {
-            subtotal = subtotal * 0.90;
+            total *= 0.90;
         }
 
-        return subtotal;
+        return total;
     }
 
-    public static boolean cartvalidation(ArrayList<Cartitems> cart) {
-        if (cart == null || cart.isEmpty()) {
-            return false;
-        }
-        for (Cartitems c : cart) {
-            if (c.getOrderedQuantity() <= 0) {
-                return false;
-            }
-        }
-        return true;
+    public static boolean cartvalidation(List<Cartitems> cart) {
+        return cart != null && !cart.isEmpty();
+    }
+
+    public static boolean validatePaymentMethod(String paymentMethod) {
+        return paymentMethod != null && !paymentMethod.trim().isEmpty() && !paymentMethod.equalsIgnoreCase("Select Payment");
     }
 
     public static boolean processCheckout() {
@@ -87,39 +131,23 @@ public class managerClass {
             return false;
         }
 
-        double finalTotal = calculateSubtotal();
-
         for (Cartitems item : activeCart) {
-            logAuditAction("CHECKOUT",
-                    item.getPartId(),
-                    item.getOrderedQuantity(),
-                    "Sold unit price: Rs. " + item.getPart().getPartPrice());
+            logAuditAction("CHECKOUT", item.getPart().getPartId(), item.getOrderedQuantity(),
+                    "Purchased: " + item.getPart().getPartName());
         }
 
         PartLoad.saveItems("data/updated_data_legacy.txt");
-
-        activeCart.clear();
+        clearCart();
         return true;
     }
 
-    public static void logAuditAction(String actionType, String itemCode, int quantity, String description) {
-        try {
-            FileWriter fw = new FileWriter("data/audit_log.txt", true);
-            PrintWriter pw = new PrintWriter(fw);
-
-            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            String timestamp = LocalDateTime.now().format(dtf);
-
-            String qtyString = (quantity >= 0) ? String.valueOf(quantity) : "N/A";
-            String codeString = (itemCode != null && !itemCode.isEmpty()) ? itemCode : "N/A";
-
-            pw.println(String.format("[%s] ACTION: %s | ITEM: %s | QTY: %s | DETAILS: %s",
-                    timestamp, actionType, codeString, qtyString, description));
-
-            pw.close();
-            fw.close();
+    public static void logAuditAction(String action, String partId, int quantity, String details) {
+        try (PrintWriter writer = new PrintWriter(new FileWriter("data/audit_log.txt", true))) {
+            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            writer.println(String.format("[%s] ACTION: %s | PART_ID: %s | QTY: %d | DETAILS: %s",
+                    timestamp, action, partId, quantity, details));
         } catch (IOException e) {
-            System.err.println("Failed to write to audit log: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

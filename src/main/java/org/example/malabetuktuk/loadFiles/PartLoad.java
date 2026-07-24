@@ -1,9 +1,11 @@
 package org.example.malabetuktuk.loadFiles;
 
 import org.example.malabetuktuk.blueprints.Part;
-import org.example.malabetuktuk.sorts.itemSort;
 
 import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 
 public class PartLoad {
@@ -23,63 +25,32 @@ public class PartLoad {
                 String[] parts = line.trim().split("[,;|]", -1);
 
                 if (parts.length >= 9) {
-                    String partId = parts[0].trim();
+                    String partId = cleanField(parts[0]);
+                    String partName = cleanField(parts[1]);
+                    String partBrand = cleanField(parts[2]);
 
-                    String partName = parts[1].trim();
-                    if (partName.isEmpty()) {
-                        partName = "null";
-                    }
+                    double price = parsePrice(parts[3]);
+                    int quantity = parseQuantity(parts[4]);
 
-                    String partBrand = parts[2].trim();
-                    if (partBrand.isEmpty()) {
-                        partBrand = "null";
-                    }
-
-                    String priceStr = parts[3].trim().replace("Rs.", "").replace("Rs", "").trim();
-                    double price = priceStr.isEmpty() ? 0.0 : Double.parseDouble(priceStr);
-
-                    String qtyStr = parts[4].trim();
-                    int quantity = qtyStr.isEmpty() ? 0 : Integer.parseInt(qtyStr);
-
-                    String partType = parts[5].trim().toUpperCase();
-                    String addedDate = parts[6].trim() + ", " + parts[7].trim();
-                    String imagePath = "null";
+                    String partType = cleanField(parts[5]).toUpperCase();
+                    String rawDate = parts[6].trim() + ", " + parts[7].trim();
+                    String addedDate = normalizeDate(rawDate);
+                    String imagePath = cleanField(parts[8]);
 
                     Part newPart = new Part(partId, partName, partBrand, price, quantity, partType, addedDate, imagePath);
                     inventoryList.add(newPart);
                 }
                 else if (parts.length == 8) {
-                    String partId = parts[0].trim();
+                    String partId = cleanField(parts[0]);
+                    String partName = cleanField(parts[1]);
+                    String partBrand = cleanField(parts[2]);
 
-                    String partName = parts[1].trim();
-                    if (partName.isEmpty()) {
-                        partName = "null";
-                    }
+                    double price = parsePrice(parts[3]);
+                    int quantity = parseQuantity(parts[4]);
 
-                    String partBrand = parts[2].trim();
-                    if (partBrand.isEmpty()) {
-                        partBrand = "null";
-                    }
-
-                    String priceStr = parts[3].trim().replace("Rs.", "").replace("Rs", "").trim();
-                    double price = 0.00;
-                    if(priceStr.isEmpty()){
-                        price = 0.00;
-                    }
-                    else{
-                        price =  Double.parseDouble(priceStr);
-                    }
-
-                    String qtyStr = parts[4].trim();
-                    int quantity = qtyStr.isEmpty() ? 0 : Integer.parseInt(qtyStr);
-
-                    String partType = parts[5].trim().toUpperCase();
-                    String addedDate = parts[6].trim();
-
-                    String imagePath = parts[7].trim();
-                    if (imagePath.isEmpty()) {
-                        imagePath = "null";
-                    }
+                    String partType = cleanField(parts[5]).toUpperCase();
+                    String addedDate = normalizeDate(parts[6].trim());
+                    String imagePath = cleanField(parts[7]);
 
                     Part newPart = new Part(partId, partName, partBrand, price, quantity, partType, addedDate, imagePath);
                     inventoryList.add(newPart);
@@ -101,6 +72,73 @@ public class PartLoad {
         }
     }
 
+    private static String cleanField(String val) {
+        if (val == null || val.trim().isEmpty()) {
+            return "null";
+        }
+        return val.trim();
+    }
+
+    private static double parsePrice(String priceStr) {
+        if (priceStr == null) return 0.0;
+        String clean = priceStr.trim().replace("Rs.", "").replace("Rs", "").trim();
+        if (clean.isEmpty()) return 0.0;
+        try {
+            return Double.parseDouble(clean);
+        } catch (NumberFormatException e) {
+            return 0.0;
+        }
+    }
+
+    private static int parseQuantity(String qtyStr) {
+        if (qtyStr == null) return 0;
+        String clean = qtyStr.trim();
+        if (clean.isEmpty()) return 0;
+        try {
+            return Integer.parseInt(clean);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    public static String normalizeDate(String inputDate) {
+        if (inputDate == null || inputDate.trim().isEmpty() || inputDate.trim().equalsIgnoreCase("null")) {
+            return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd, HH:mm"));
+        }
+
+        String str = inputDate.trim();
+
+        String[] formats = {
+                "yyyy-MM-dd, HH:mm",
+                "yyyy-MM-dd HH:mm:ss",
+                "yyyy-MM-dd HH:mm",
+                "yyyy/MM/dd, HH:mm",
+                "yyyy/MM/dd HH:mm",
+                "dd-MM-yyyy HH:mm",
+                "dd/MM/yyyy HH:mm",
+                "yyyy-MM-dd",
+                "yyyy/MM/dd",
+                "dd-MM-yyyy",
+                "dd/MM/yyyy"
+        };
+
+        for (String fmt : formats) {
+            try {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern(fmt);
+                if (fmt.contains("HH")) {
+                    LocalDateTime dt = LocalDateTime.parse(str, formatter);
+                    return dt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd, HH:mm"));
+                } else {
+                    java.time.LocalDate ld = java.time.LocalDate.parse(str, formatter);
+                    return ld.atStartOfDay().format(DateTimeFormatter.ofPattern("yyyy-MM-dd, HH:mm"));
+                }
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+
+        return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd, HH:mm"));
+    }
+
     public static ArrayList<Part> getInventoryList() {
         return inventoryList;
     }
@@ -108,13 +146,13 @@ public class PartLoad {
     public static void saveItems(String fileName) {
         BufferedWriter bw = null;
         try {
-            bw = new BufferedWriter(new java.io.FileWriter(fileName));
+            bw = new BufferedWriter(new FileWriter(fileName));
 
             for (Part part : inventoryList) {
                 String line = part.getPartId() + "," +
                         part.getPartName() + "," +
                         part.getPartBrand() + "," +
-                        part.getPartPrice() + "," +
+                        String.format("%.2f", part.getPartPrice()) + "," +
                         part.getPartQuantity() + "," +
                         part.getPartType() + "," +
                         part.getAddedDate() + "," +
@@ -140,22 +178,5 @@ public class PartLoad {
     public static void main(String[] args) {
         loadItems("data/inventory_legacy.txt");
         saveItems("data/updated_data_legacy.txt");
-
-//  testing
-//        // 1. Fetch your fresh data pool
-//        inventoryList.clear();
-//        loadItems("data/inventory_legacy.txt");
-//
-//// 2. Set the custom barrier value (e.g., 10)
-//        int userBarrier = 5;
-//        System.out.println("--- ITEMS BELOW QUANTITY " + userBarrier + " ---");
-//
-//// 3. Call the method with your variable passed inside the parentheses
-//        ArrayList<Part> results = org.example.malabetuktuk.POS.LowStock.getLowStockParts(userBarrier);
-//
-//// 4. Print out matching lines
-//        for (Part p : results) {
-//            System.out.println(p.getPartId() + " | Qty: " + p.getPartQuantity() + " | " + p.getPartName());
-//        }
     }
 }

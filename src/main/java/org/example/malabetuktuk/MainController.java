@@ -17,11 +17,11 @@ public class MainController {
 
     @FXML
     public void initialize() {
-        // Load Inventory by default
         loadView("inventory.fxml");
 
         btnInventory.setOnAction(e -> loadView("inventory.fxml"));
         btnCart.setOnAction(e -> loadView("cart.fxml"));
+        btnDealers.setOnAction(e -> loadView("dealers.fxml"));
     }
 
     private void loadView(String fxmlFile) {

@@ -1,6 +1,8 @@
 package org.example.malabetuktuk.POS;
+
 import org.example.malabetuktuk.blueprints.Dealer;
 import org.example.malabetuktuk.loadFiles.DealerLoad;
+import org.example.malabetuktuk.sorts.dealerSort;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -23,18 +25,7 @@ public class RandomDealers {
             }
         }
 
-        int n = selectedDealers.size();
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = 0; j < n - i - 1; j++) {
-                String loc1 = selectedDealers.get(j).getDealerCity();
-                String loc2 = selectedDealers.get(j + 1).getDealerCity();
-                if (loc1.compareToIgnoreCase(loc2) > 0) {
-                    Dealer temp = selectedDealers.get(j);
-                    selectedDealers.set(j, selectedDealers.get(j + 1));
-                    selectedDealers.set(j + 1, temp);
-                }
-            }
-        }
+        dealerSort.bubbleSortByCity(selectedDealers);
 
         return selectedDealers;
     }

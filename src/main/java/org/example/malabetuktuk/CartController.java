@@ -5,8 +5,8 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import org.example.malabetuktuk.blueprints.Cartitems;
 import org.example.malabetuktuk.POS.managerClass;
+import org.example.malabetuktuk.blueprints.Cartitems;
 import org.example.malabetuktuk.loadFiles.PartLoad;
 
 import java.util.ArrayList;

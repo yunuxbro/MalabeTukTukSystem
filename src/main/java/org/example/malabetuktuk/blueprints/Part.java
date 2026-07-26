@@ -9,8 +9,13 @@ public class Part {
     private String partType;
     private String addedDate;
     private String imagePath;
+    private int lowStockThreshold;
 
     public Part(String partId, String partName, String partBrand, double partPrice, int partQuantity, String partType, String addedDate, String imagePath) {
+        this(partId, partName, partBrand, partPrice, partQuantity, partType, addedDate, imagePath, 5);
+    }
+
+    public Part(String partId, String partName, String partBrand, double partPrice, int partQuantity, String partType, String addedDate, String imagePath, int lowStockThreshold) {
         this.partId = partId;
         this.partName = partName;
         this.partBrand = partBrand;
@@ -19,56 +24,78 @@ public class Part {
         this.partType = partType;
         this.addedDate = addedDate;
         this.imagePath = imagePath;
+        this.lowStockThreshold = lowStockThreshold;
+    }
+
+    public int getLowStockThreshold() {
+        return lowStockThreshold;
+    }
+
+    public void setLowStockThreshold(int lowStockThreshold) {
+        this.lowStockThreshold = lowStockThreshold;
     }
 
     public String getPartId() {
         return partId;
     }
+
     public void setPartId(String partId) {
         this.partId = partId;
     }
+
     public String getPartName() {
         return this.partName;
     }
+
     public void setPartName(String partName) {
         this.partName = partName;
     }
+
     public String getPartBrand() {
         return this.partBrand;
     }
+
     public void setPartBrand(String partBrand) {
         this.partBrand = partBrand;
     }
+
     public double getPartPrice() {
         return this.partPrice;
     }
+
     public void setPartPrice(double partPrice) {
         this.partPrice = partPrice;
     }
+
     public int getPartQuantity() {
         return this.partQuantity;
     }
+
     public void setPartQuantity(int partQuantity) {
         this.partQuantity = partQuantity;
     }
+
     public String getPartType() {
         return this.partType;
     }
+
     public void setPartType(String partType) {
         this.partType = partType;
     }
+
     public String getAddedDate() {
         return this.addedDate;
     }
+
     public void setAddedDate(String addedDate) {
         this.addedDate = addedDate;
     }
+
     public String getImagePath() {
         return this.imagePath;
     }
+
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
     }
-
-
 }

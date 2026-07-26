@@ -2,19 +2,20 @@ package org.example.malabetuktuk.POS;
 
 import org.example.malabetuktuk.blueprints.Part;
 import org.example.malabetuktuk.loadFiles.PartLoad;
+
 import java.util.ArrayList;
 
 public class LowStock {
 
-    public static ArrayList<Part> getLowStockParts(int barrier) {
+    public static ArrayList<Part> getLowStockParts() {
         ArrayList<Part> lowStockList = new ArrayList<>();
-        ArrayList<Part> allParts = PartLoad.getInventoryList();
 
-        for (Part p : allParts) {
-            if (p.getPartQuantity() < barrier) {
-                lowStockList.add(p);
+        for (Part part : PartLoad.getInventoryList()) {
+            if (part.getPartQuantity() <= part.getLowStockThreshold()) {
+                lowStockList.add(part);
             }
         }
+
         return lowStockList;
     }
 }

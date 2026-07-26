@@ -1,5 +1,5 @@
 P003,205/50-10 Tyre,null,6500.0,24,BODYWORK,Oct,2023
-P007,3-Wheeler Canopy Cover,indian,8500.5,5,BODYWORK,2023/Aug/15,canopy.png
+P007,3-Wheeler Canopy Cover,Local,8500.5,5,BODYWORK,2023/Aug/15,canopy.png
 P010,Rear View Mirror,null,800.0,45,BODYWORK,2023/10/10,mirror.png
 P002,TVS King Brake Pad,TVS,1250.0,8,BRAKES,2023/05/12,brakepad.png
 P004,Spark Plug NGK,NGK,850.0,50,ELECTRICAL,2024/01/05,spark.jpg

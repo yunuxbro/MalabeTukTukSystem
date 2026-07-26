@@ -7,4 +7,4 @@ P006,Headlight Bulb 12V,null,450.0,30,ELECTRICAL,2023/11/20,hl_bulb.jpg
 P009,Ignition Coil 2-Stroke,Bajaj,2200.0,18,ELECTRICAL,2023/09/01,null
 P001,Bajaj 4-Stroke Piston,Bajaj,4500.0,15,ENGINE,2023/10/12,piston4s.jpg
 P005,Clutch Cable Bajaj RE,Bajaj,950.0,12,ENGINE,2024/02/01,cl_cable.jpg
-P008,Piaggio Ape Filter,Piaggio,1100.0,0,ENGINE,2024/02/28,filter_ape.jpeg
+P008,Piaggio Ape Filter,Piaggio,1100.0,10,ENGINE,2024/02/28,filter_ape.jpeg

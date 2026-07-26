@@ -3,6 +3,8 @@ package org.example.malabetuktuk.loadFiles;
 import org.example.malabetuktuk.blueprints.Part;
 
 import java.io.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 public class PartLoad {
@@ -23,16 +25,16 @@ public class PartLoad {
                 String[] parts = line.split("[,;|]");
 
                 if (parts.length >= 7) {
-                    String partId = parts[0].trim();
-                    String partName = parts[1].trim();
-                    String partBrand = parts[2].trim();
+                    String partId = cleanField(parts[0]);
+                    String partName = cleanField(parts[1]);
+                    String partBrand = cleanField(parts[2]);
                     double price = parsePrice(parts[3].trim());
                     int quantity = parseQuantity(parts[4].trim());
-                    String partType = parts[5].trim().toUpperCase();
-                    String addedDate = cleanDate(parts[6].trim());
-                    String imagePath = (parts.length >= 8) ? parts[7].trim() : "null";
+                    String partType = cleanField(parts[5]).toUpperCase();
+                    String addedDate = normalizeDate(parts[6].trim());
+                    String imagePath = (parts.length >= 8) ? cleanField(parts[7]) : "null";
 
-                    if (partId.isEmpty() || partName.isEmpty()) {
+                    if (partId.equals("null") || partName.equals("null")) {
                         continue;
                     }
 
@@ -48,14 +50,14 @@ public class PartLoad {
     public static void saveItems(String fileName) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName))) {
             for (Part part : inventoryList) {
-                String line = part.getPartId() + "," +
-                        part.getPartName() + "," +
-                        part.getPartBrand() + "," +
+                String line = cleanField(part.getPartId()) + "," +
+                        cleanField(part.getPartName()) + "," +
+                        cleanField(part.getPartBrand()) + "," +
                         part.getPartPrice() + "," +
                         part.getPartQuantity() + "," +
-                        part.getPartType() + "," +
-                        part.getAddedDate() + "," +
-                        part.getImagePath();
+                        cleanField(part.getPartType()) + "," +
+                        cleanField(part.getAddedDate()) + "," +
+                        cleanField(part.getImagePath());
 
                 bw.write(line);
                 bw.newLine();
@@ -65,19 +67,48 @@ public class PartLoad {
         }
     }
 
-    public static String cleanDate(String rawDate) {
+    public static String cleanField(String val) {
+        if (val == null || val.trim().isEmpty() || val.trim().equalsIgnoreCase("null")) {
+            return "null";
+        }
+        return val.trim();
+    }
+
+    public static String normalizeDate(String rawDate) {
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+
         if (rawDate == null || rawDate.isEmpty() || rawDate.equalsIgnoreCase("null")) {
-            return "2026-01-01";
+            return today;
         }
 
-        if (rawDate.contains(",")) {
-            return rawDate.split(",")[0].trim();
+        String str = rawDate.trim();
+        if (str.contains(",")) {
+            str = str.split(",")[0].trim();
         }
-        if (rawDate.contains(" ")) {
-            return rawDate.split(" ")[0].trim();
+        if (str.contains(" ")) {
+            str = str.split(" ")[0].trim();
         }
 
-        return rawDate;
+        str = str.replace("-", "/");
+
+        String[] parts = str.split("/");
+        if (parts.length == 3) {
+            String year = parts[0];
+            String month = parts[1];
+            String day = parts[2];
+
+            if (year.length() == 4) {
+                if (month.length() == 1) month = "0" + month;
+                if (day.length() == 1) day = "0" + day;
+                return year + "/" + month + "/" + day;
+            } else if (day.length() == 4) {
+                if (month.length() == 1) month = "0" + month;
+                if (year.length() == 1) year = "0" + year;
+                return day + "/" + month + "/" + year;
+            }
+        }
+
+        return str;
     }
 
     private static double parsePrice(String priceStr) {

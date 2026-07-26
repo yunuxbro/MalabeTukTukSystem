@@ -2,8 +2,6 @@ package org.example.malabetuktuk;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -11,7 +9,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
@@ -41,7 +38,6 @@ public class InventoryController {
     @FXML private TextField txtKeyword;
     @FXML private Button btnSearch;
     @FXML private Button btnAddItem;
-    @FXML private TextField txtThreshold;
     @FXML private Label lblLowStockItems;
 
     @FXML private TableView<Part> tblInventory;
@@ -58,18 +54,15 @@ public class InventoryController {
 
     @FXML
     public void initialize() {
-        // Load legacy inventory file if it's currently empty
         if (PartLoad.getInventoryList().isEmpty()) {
             PartLoad.loadItems("data/inventory_legacy.txt");
         }
 
-        // Setup filter categories dropdown
         if (cmbCategory.getItems().isEmpty()) {
             cmbCategory.getItems().addAll("All", "ENGINE", "ELECTRICAL", "BODY", "BRAKE");
             cmbCategory.setValue("All");
         }
 
-        // Bind table columns to Part model attributes
         colId.setCellValueFactory(new PropertyValueFactory<>("partId"));
         colName.setCellValueFactory(new PropertyValueFactory<>("partName"));
         colCategory.setCellValueFactory(new PropertyValueFactory<>("partType"));
@@ -77,7 +70,6 @@ public class InventoryController {
         colPrice.setCellValueFactory(new PropertyValueFactory<>("partPrice"));
         colQty.setCellValueFactory(new PropertyValueFactory<>("partQuantity"));
 
-        // Setup custom image column cell rendering
         colImg.setCellFactory(new Callback<>() {
             public TableCell<Part, Void> call(TableColumn<Part, Void> param) {
                 return new TableCell<>() {
@@ -117,7 +109,6 @@ public class InventoryController {
             }
         });
 
-        // Setup custom action column with inline quantity spinner, add to cart, and edit buttons
         colAction.setCellFactory(new Callback<>() {
             public TableCell<Part, Void> call(TableColumn<Part, Void> param) {
                 return new TableCell<>() {
@@ -162,7 +153,6 @@ public class InventoryController {
             }
         });
 
-        // Enable double-click on table rows to open details window
         tblInventory.setRowFactory(param -> {
             TableRow<Part> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
@@ -177,8 +167,6 @@ public class InventoryController {
 
         btnSearch.setOnAction(event -> applyFilter());
         btnAddItem.setOnAction(event -> openAddWindow());
-
-        txtThreshold.textProperty().addListener((observable, oldValue, newValue) -> updateLowStockAlerts());
     }
 
     private void refreshScreen() {
@@ -206,6 +194,7 @@ public class InventoryController {
         TextField txtPrice = new TextField();
         TextField txtQty = new TextField();
         TextField txtType = new TextField();
+        TextField txtThresholdInput = new TextField("5");
 
         String currentFormattedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd, HH:mm"));
         TextField txtDate = new TextField(currentFormattedDate);
@@ -242,14 +231,17 @@ public class InventoryController {
         grid.add(new Label("Category Type (*):"), 0, 5);
         grid.add(txtType, 1, 5);
 
-        grid.add(new Label("Date Added:"), 0, 6);
-        grid.add(txtDate, 1, 6);
+        grid.add(new Label("Low Stock Threshold:"), 0, 6);
+        grid.add(txtThresholdInput, 1, 6);
 
-        grid.add(new Label("Image Path:"), 0, 7);
+        grid.add(new Label("Date Added:"), 0, 7);
+        grid.add(txtDate, 1, 7);
+
+        grid.add(new Label("Image Path:"), 0, 8);
         HBox imgBox = new HBox(5, txtImgPath, btnBrowse);
-        grid.add(imgBox, 1, 7);
+        grid.add(imgBox, 1, 8);
 
-        grid.add(lblError, 0, 8, 2, 1);
+        grid.add(lblError, 0, 9, 2, 1);
 
         Button btnSubmit = new Button("Add Item");
         btnSubmit.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold;");
@@ -265,7 +257,6 @@ public class InventoryController {
             String imgPath = txtImgPath.getText().trim();
             if (imgPath.isEmpty()) imgPath = "null";
 
-            // Simple validation check using label message
             if (partId.isEmpty() || name.isEmpty() || type.isEmpty() || txtPrice.getText().trim().isEmpty() || txtQty.getText().trim().isEmpty()) {
                 lblError.setText("Please fill in all mandatory fields (*)");
                 return;
@@ -281,22 +272,22 @@ public class InventoryController {
             try {
                 double price = Double.parseDouble(txtPrice.getText().trim());
                 int qty = Integer.parseInt(txtQty.getText().trim());
+                int threshold = Integer.parseInt(txtThresholdInput.getText().trim());
 
-                Part newPart = new Part(partId, name, brand, price, qty, type, date, imgPath);
+                Part newPart = new Part(partId, name, brand, price, qty, type, date, imgPath, threshold);
                 PartLoad.getInventoryList().add(newPart);
                 PartLoad.saveItems("data/updated_data_legacy.txt");
 
-                // Audit Log Update
                 managerClass.logAuditAction("ADD_PART", partId, qty, "Added new part: " + name);
 
                 refreshScreen();
                 popupStage.close();
             } catch (NumberFormatException ex) {
-                lblError.setText("Invalid price or quantity number!");
+                lblError.setText("Invalid price, quantity, or threshold number!");
             }
         });
 
-        grid.add(btnSubmit, 1, 9);
+        grid.add(btnSubmit, 1, 10);
 
         Scene scene = new Scene(grid);
         popupStage.setScene(scene);
@@ -329,6 +320,7 @@ public class InventoryController {
         TextField txtBrand = new TextField(part.getPartBrand());
         TextField txtPrice = new TextField(String.valueOf(part.getPartPrice()));
         TextField txtQty = new TextField(String.valueOf(part.getPartQuantity()));
+        TextField txtThresholdInput = new TextField(String.valueOf(part.getLowStockThreshold()));
         TextField txtDate = new TextField(part.getAddedDate());
 
         Label lblError = new Label();
@@ -356,35 +348,72 @@ public class InventoryController {
         grid.add(new Label("Stock Quantity:"), 0, 6);
         grid.add(txtQty, 1, 6);
 
-        grid.add(new Label("Date Added:"), 0, 7);
-        grid.add(txtDate, 1, 7);
+        grid.add(new Label("Low Stock Threshold:"), 0, 7);
+        grid.add(txtThresholdInput, 1, 7);
 
-        grid.add(lblError, 0, 8, 2, 1);
+        grid.add(new Label("Date Added:"), 0, 8);
+        grid.add(txtDate, 1, 8);
+
+        grid.add(lblError, 0, 9, 2, 1);
 
         Button btnSave = new Button("Save Changes");
         btnSave.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold;");
 
         btnSave.setOnAction(event -> {
             try {
-                part.setPartName(txtName.getText().trim());
-                part.setPartType(txtType.getText().trim().toUpperCase());
+                String newName = txtName.getText().trim();
+                String newType = txtType.getText().trim().toUpperCase();
                 String brandInput = txtBrand.getText().trim();
-                part.setPartBrand(brandInput.isEmpty() ? "Unknown" : brandInput);
-                part.setPartPrice(Double.parseDouble(txtPrice.getText().trim()));
-                part.setPartQuantity(Integer.parseInt(txtQty.getText().trim()));
-                part.setAddedDate(PartLoad.normalizeDate(txtDate.getText().trim()));
+                String newBrand = brandInput.isEmpty() ? "Unknown" : brandInput;
+                double newPrice = Double.parseDouble(txtPrice.getText().trim());
+                int newQty = Integer.parseInt(txtQty.getText().trim());
+                int newThreshold = Integer.parseInt(txtThresholdInput.getText().trim());
+                String newDate = PartLoad.normalizeDate(txtDate.getText().trim());
                 String imgInput = txtImgPath.getText().trim();
-                part.setImagePath(imgInput.isEmpty() ? "null" : imgInput);
+                String newImg = imgInput.isEmpty() ? "null" : imgInput;
+
+                StringBuilder changeLog = new StringBuilder();
+
+                if (!part.getPartName().equalsIgnoreCase(newName)) {
+                    changeLog.append("Name: ").append(part.getPartName()).append(" -> ").append(newName).append(" | ");
+                }
+                if (!part.getPartBrand().equalsIgnoreCase(newBrand)) {
+                    changeLog.append("Brand: ").append(part.getPartBrand()).append(" -> ").append(newBrand).append(" | ");
+                }
+                if (!part.getPartType().equalsIgnoreCase(newType)) {
+                    changeLog.append("Category: ").append(part.getPartType()).append(" -> ").append(newType).append(" | ");
+                }
+                if (part.getPartPrice() != newPrice) {
+                    changeLog.append("Price: Rs.").append(part.getPartPrice()).append(" -> Rs.").append(newPrice).append(" | ");
+                }
+                if (part.getPartQuantity() != newQty) {
+                    changeLog.append("Qty: ").append(part.getPartQuantity()).append(" -> ").append(newQty).append(" | ");
+                }
+                if (part.getLowStockThreshold() != newThreshold) {
+                    changeLog.append("Threshold: ").append(part.getLowStockThreshold()).append(" -> ").append(newThreshold).append(" | ");
+                }
+
+                String auditDetails = changeLog.length() > 0
+                        ? changeLog.substring(0, changeLog.length() - 3)
+                        : "No fields modified";
+
+                part.setPartName(newName);
+                part.setPartType(newType);
+                part.setPartBrand(newBrand);
+                part.setPartPrice(newPrice);
+                part.setPartQuantity(newQty);
+                part.setLowStockThreshold(newThreshold);
+                part.setAddedDate(newDate);
+                part.setImagePath(newImg);
 
                 PartLoad.saveItems("data/updated_data_legacy.txt");
 
-                // Audit Log Update
-                managerClass.logAuditAction("UPDATE_PART", part.getPartId(), part.getPartQuantity(), "Updated part details: " + part.getPartName());
+                managerClass.logAuditAction("UPDATE_PART", part.getPartId(), part.getPartQuantity(), auditDetails);
 
                 refreshScreen();
                 popupStage.close();
             } catch (NumberFormatException ex) {
-                lblError.setText("Invalid price or quantity number!");
+                lblError.setText("Invalid price, quantity, or threshold number!");
             }
         });
 
@@ -395,7 +424,6 @@ public class InventoryController {
             PartLoad.getInventoryList().remove(part);
             PartLoad.saveItems("data/updated_data_legacy.txt");
 
-            // Audit Log Update
             managerClass.logAuditAction("DELETE_PART", part.getPartId(), part.getPartQuantity(), "Deleted part: " + part.getPartName());
 
             refreshScreen();
@@ -403,7 +431,7 @@ public class InventoryController {
         });
 
         HBox actionBox = new HBox(10, btnSave, btnDelete);
-        grid.add(actionBox, 1, 9);
+        grid.add(actionBox, 1, 10);
 
         Scene scene = new Scene(grid);
         popupStage.setScene(scene);
@@ -425,21 +453,22 @@ public class InventoryController {
     }
 
     private void updateLowStockAlerts() {
-        try {
-            int barrier = Integer.parseInt(txtThreshold.getText().trim());
-            ArrayList<Part> lowStock = LowStock.getLowStockParts(barrier);
+        ArrayList<Part> lowStockList = LowStock.getLowStockParts();
 
-            if (lowStock.isEmpty()) {
-                lblLowStockItems.setText("None");
-            } else {
-                StringBuilder sb = new StringBuilder();
-                for (Part p : lowStock) {
-                    sb.append(p.getPartName()).append(" (Qty: ").append(p.getPartQuantity()).append("), ");
-                }
-                lblLowStockItems.setText(sb.substring(0, sb.length() - 2));
+        if (lowStockList.isEmpty()) {
+            lblLowStockItems.setText("All items sufficiently stocked.");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (Part part : lowStockList) {
+                sb.append("• ")
+                        .append(part.getPartName())
+                        .append(" (Qty: ")
+                        .append(part.getPartQuantity())
+                        .append(" / Min: ")
+                        .append(part.getLowStockThreshold())
+                        .append(")\n");
             }
-        } catch (NumberFormatException e) {
-            lblLowStockItems.setText("Invalid threshold number");
+            lblLowStockItems.setText(sb.toString().trim());
         }
     }
 

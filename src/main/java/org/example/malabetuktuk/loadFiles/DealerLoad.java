@@ -11,10 +11,8 @@ import java.util.Arrays;
 
 public class DealerLoad {
     private static ArrayList<Dealer> dealerList = new ArrayList<Dealer>();
-
     public static void loadDealers(String fileName) {
         BufferedReader br = null;
-
         try {
             br = new BufferedReader(new FileReader(fileName));
             String line;
@@ -22,35 +20,27 @@ public class DealerLoad {
                 if (line.trim().isEmpty()) {
                     continue;
                 }
-
                 String[] parts = line.trim().split("[,;|]");
-
                 if (parts.length >= 4) {
                     String id = parts[0].trim();
-
                     String name = parts[1].trim();
                     if (name.isEmpty()) {
                         name = "null";
                     }
-
-                    // Handle empty or unparseable integer number
                     String numStr = parts[2].trim();
                     int num = 0;
                     if (!numStr.isEmpty()) {
                         num = Integer.parseInt(numStr);
                     }
-
                     String city = parts[3].trim();
                     if (city.isEmpty()) {
                         city = "null";
                     }
-
                     Dealer newDealer = new Dealer(id, name, num, city);
                     dealerList.add(newDealer);
                 }
             }
             System.out.println("Successfully loaded " + dealerList.size() + " dealer objects into memory!");
-
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {

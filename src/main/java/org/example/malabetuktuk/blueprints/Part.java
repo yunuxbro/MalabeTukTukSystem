@@ -12,10 +12,7 @@ public class Part {
     private int lowStockThreshold;
 
     public Part(String partId, String partName, String partBrand, double partPrice, int partQuantity, String partType, String addedDate, String imagePath) {
-        this(partId, partName, partBrand, partPrice, partQuantity, partType, addedDate, imagePath, 5);
-    }
 
-    public Part(String partId, String partName, String partBrand, double partPrice, int partQuantity, String partType, String addedDate, String imagePath, int lowStockThreshold) {
         this.partId = partId;
         this.partName = partName;
         this.partBrand = partBrand;
@@ -24,7 +21,7 @@ public class Part {
         this.partType = partType;
         this.addedDate = addedDate;
         this.imagePath = imagePath;
-        this.lowStockThreshold = lowStockThreshold;
+        this.lowStockThreshold = 5;
     }
 
     public int getLowStockThreshold() {

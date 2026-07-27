@@ -3,6 +3,7 @@ package org.example.malabetuktuk;
 import org.example.malabetuktuk.blueprints.Part;
 import org.example.malabetuktuk.POS.InventoryFilter;
 import org.example.malabetuktuk.loadFiles.PartLoad;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,6 +20,7 @@ class InventoryFilterTest {
         PartLoad.getInventoryList().add(new Part("P002", "Headlight Bulb", "Bajaj", 500.0, 20, "ELECTRICAL", "2026-01-01", "null", 5));
         PartLoad.getInventoryList().add(new Part("P003", "Brake Shoe", "TVS", 2500.0, 3, "BRAKE", "2026-01-01", "null", 2));
     }
+
 
     @Test
     void testFiltersByCategoryAndPrice() {

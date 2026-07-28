@@ -7,16 +7,16 @@ import java.util.ArrayList;
 
 public class UpdateItem {
 
+
+    
     public static String executeUpdate(String partId, String name, String brand, String priceStr, String qtyStr, String type, String imgPath, String filePath) {
         if (name == null || name.trim().isEmpty() ||
                 brand == null || brand.trim().isEmpty() ||
                 type == null || type.trim().isEmpty()) {
             return "All text fields are required!";
         }
-
         double price;
         int qty;
-
         try {
             price = Double.parseDouble(priceStr.trim());
             qty = Integer.parseInt(qtyStr.trim());
@@ -36,11 +36,9 @@ public class UpdateItem {
                 break;
             }
         }
-
         if (targetPart == null) {
             return "Item with ID " + partId + " not found!";
         }
-
         targetPart.setPartName(name.trim());
         targetPart.setPartBrand(brand.trim());
         targetPart.setPartPrice(price);

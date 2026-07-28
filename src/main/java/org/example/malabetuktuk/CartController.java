@@ -62,46 +62,17 @@ public class CartController {
         List<Cartitems> cart = managerClass.getCart();
 
         double rawSubtotal = 0.0;
-        boolean hasBulkDiscount = false;
-        boolean hasEngine = false;
-        boolean hasElectrical = false;
-
-        for (int i = 0; i < cart.size(); i++) {
-            Cartitems item = cart.get(i);
+        for (Cartitems item : cart) {
             rawSubtotal += (item.getPart().getPartPrice() * item.getOrderedQuantity());
-
-            if (item.getOrderedQuantity() >= 3) {
-                hasBulkDiscount = true;
-            }
-
-            String cat = item.getPart().getPartType().trim().toUpperCase();
-            if (cat.contains("ENGINE")) {
-                hasEngine = true;
-            }
-            if (cat.contains("ELECTRICAL") || cat.contains("ELECTRIC")) {
-                hasElectrical = true;
-            }
         }
 
-        boolean hasSynergyDiscount = hasEngine && hasElectrical;
-        double finalTotal = managerClass.calculateSubtotal();
-        double discountAmount = rawSubtotal - finalTotal;
-
-        StringBuilder discountTypeStr = new StringBuilder();
-        if (hasBulkDiscount && hasSynergyDiscount) {
-            discountTypeStr.append("• Bulk Discount (5%)\n• Synergy Discount (10%)");
-        } else if (hasBulkDiscount) {
-            discountTypeStr.append("• Bulk Discount (5% on 3+ items)");
-        } else if (hasSynergyDiscount) {
-            discountTypeStr.append("• Synergy Discount (10% Engine + Electrical)");
-        } else {
-            discountTypeStr.append("None");
-        }
+        double grandTotal = managerClass.calculateSubtotal();
+        double discountAmount = rawSubtotal - grandTotal;
 
         lblSubtotal.setText(String.format("Rs. %.2f", rawSubtotal));
-        lblDiscountType.setText(discountTypeStr.toString());
+        lblDiscountType.setText(discountAmount > 0 ? "Applied Savings / Discounts" : "None");
         lblDiscountAmount.setText(String.format("- Rs. %.2f", discountAmount));
-        lblGrandTotal.setText(String.format("Rs. %.2f", finalTotal));
+        lblGrandTotal.setText(String.format("Rs. %.2f", grandTotal));
     }
 
     private void setupActionColumn() {
@@ -120,19 +91,15 @@ public class CartController {
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    setGraphic(btnRemove);
-                }
+                setGraphic(empty ? null : btnRemove);
             }
         });
     }
 
     private void handleClearCart() {
         List<Cartitems> itemsCopy = new ArrayList<>(managerClass.getCart());
-        for (int i = 0; i < itemsCopy.size(); i++) {
-            managerClass.removeFromCart(itemsCopy.get(i));
+        for (Cartitems item : itemsCopy) {
+            managerClass.removeFromCart(item);
         }
         PartLoad.saveItems("data/updated_data_legacy.txt");
         refreshCartDisplay();
@@ -146,29 +113,12 @@ public class CartController {
 
         String payment = cmbPaymentMethod.getValue();
         double grandTotal = managerClass.calculateSubtotal();
-        double rawSubtotal = 0.0;
-
-        List<Cartitems> cart = managerClass.getCart();
-        for (int i = 0; i < cart.size(); i++) {
-            Cartitems item = cart.get(i);
-            rawSubtotal += (item.getPart().getPartPrice() * item.getOrderedQuantity());
-        }
-
-        double discountAmount = rawSubtotal - grandTotal;
-        String discountsApplied = lblDiscountType.getText().replace("\n", ", ");
-
         boolean success = managerClass.processCheckout();
 
         if (success) {
             refreshCartDisplay();
             showNotification(Alert.AlertType.INFORMATION, "Transaction Receipt",
-                    String.format("Transaction Completed Successfully!\n\n" +
-                                    "Subtotal: Rs. %.2f\n" +
-                                    "Discounts Applied: %s\n" +
-                                    "Total Savings: Rs. %.2f\n" +
-                                    "-----------------------------------\n" +
-                                    "Final Paid: Rs. %.2f via %s",
-                            rawSubtotal, discountsApplied, discountAmount, grandTotal, payment));
+                    String.format("Transaction Completed Successfully!\nTotal Paid: Rs. %.2f via %s", grandTotal, payment));
         } else {
             showNotification(Alert.AlertType.ERROR, "Error", "Failed to process checkout transaction!");
         }

@@ -45,42 +45,6 @@ public class managerClass {
     }
 
 
-    public static boolean validateSearchInputs(String minPriceStr, String maxPriceStr, String thresholdStr) {
-        double minPrice = 0.0;
-        double maxPrice = Double.MAX_VALUE;
-
-        if (minPriceStr != null && !minPriceStr.trim().isEmpty()) {
-            try {
-                minPrice = Double.parseDouble(minPriceStr.trim());
-                if (minPrice < 0) return false;
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        }
-
-        if (maxPriceStr != null && !maxPriceStr.trim().isEmpty()) {
-            try {
-                maxPrice = Double.parseDouble(maxPriceStr.trim());
-                if (maxPrice < 0) return false;
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        }
-
-        if (minPrice > maxPrice) return false;
-
-        if (thresholdStr != null && !thresholdStr.trim().isEmpty()) {
-            try {
-                int threshold = Integer.parseInt(thresholdStr.trim());
-                if (threshold < 0) return false;
-            } catch (NumberFormatException e) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     public static boolean validateAddToCart(Part part, int requestedQty) {
         if (part == null) return false;
         if (requestedQty <= 0) return false;
@@ -147,10 +111,6 @@ public class managerClass {
 
     public static boolean cartvalidation(List<Cartitems> cart) {
         return cart != null && !cart.isEmpty();
-    }
-
-    public static boolean validatePaymentMethod(String paymentMethod) {
-        return paymentMethod != null && !paymentMethod.trim().isEmpty() && !paymentMethod.equalsIgnoreCase("Select Payment");
     }
 
     public static boolean processCheckout() {

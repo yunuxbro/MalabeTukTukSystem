@@ -25,8 +25,9 @@ class ManualSortTest {
         itemSort.sortInventory();
         ArrayList<Part> list = PartLoad.getInventoryList();
 
-        assertEquals("P001", list.get(0).getPartId());
-        assertEquals("P002", list.get(1).getPartId());
-        assertEquals("P003", list.get(2).getPartId());
+        // Primary sort is Category (BODY < ELECTRICAL < ENGINE)
+        assertEquals("P003", list.get(0).getPartId()); // BODY
+        assertEquals("P002", list.get(1).getPartId()); // ELECTRICAL
+        assertEquals("P001", list.get(2).getPartId()); // ENGINE
     }
 }

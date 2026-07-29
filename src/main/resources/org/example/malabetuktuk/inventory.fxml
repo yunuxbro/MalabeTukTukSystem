@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox spacing="15.0" style="-fx-padding: 15;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.malabetuktuk.InventoryController">
+<VBox spacing="15.0" style="-fx-padding: 15;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.example.malabetuktuk.InventoryController">
     <children>
 
         <HBox spacing="20.0" style="-fx-border-color: #ccc; -fx-padding: 10;">
@@ -39,9 +39,6 @@
                 <Button fx:id="btnSearch" text="Filter" />
 
                 <Button fx:id="btnAddItem" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold;" text="+ Add New Item" />
-
-                <Label style="-fx-padding: 0 0 0 15;" text="Low-Stock Barrier:" />
-                <TextField fx:id="txtThreshold" prefWidth="40.0" text="5" />
             </children>
         </HBox>
 

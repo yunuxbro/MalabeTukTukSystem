@@ -147,33 +147,21 @@ public class InventoryController {
                 Button btnEdit = new Button("View/Edit");
                 Button btnAdd = new Button("Add to Cart");
 
-                int maxQty = stock;
                 if (stock <= 0) {
-                    maxQty = 1;
-                }
-
-                Spinner<Integer> qtySpinner = new Spinner<>(1, maxQty, 1);
-                qtySpinner.setPrefWidth(65);
-
-                if (stock <= 0) {
-                    qtySpinner.setDisable(true);
                     btnAdd.setDisable(true);
                 }
 
                 btnEdit.setOnAction(e -> openWindow(part));
                 btnAdd.setOnAction(e -> {
-                    int qty = qtySpinner.getValue();
-                    if (managerClass.validateAddToCart(part, qty)) {
-                        part.setPartQuantity(stock - qty);
-                        for (int i = 0; i < qty; i++) {
-                            managerClass.addToCart(part);
-                        }
+                    if (managerClass.validateAddToCart(part, 1)) {
+                        part.setPartQuantity(stock - 1);
+                        managerClass.addToCart(part);
                         PartLoad.saveItems(FILE_PATH);
                         refreshScreen();
                     }
                 });
 
-                setGraphic(new HBox(5, qtySpinner, btnAdd, btnEdit));
+                setGraphic(new HBox(5, btnAdd, btnEdit));
             }
         });
     }
@@ -197,7 +185,7 @@ public class InventoryController {
             for (Part p : lowStockList) {
                 sb.append("• ").append(p.getPartName())
                         .append(" (Qty: ").append(p.getPartQuantity())
-                        .append(" / Min: ").append(p.getLowStockThreshold()).append(")\n");
+                        .append(" / Min Threshold: ").append(p.getLowStockThreshold()).append(")\n");
             }
             lblLowStockItems.setText(sb.toString().trim());
         }
@@ -244,6 +232,7 @@ public class InventoryController {
         TextField txtQty = new TextField();
         TextField txtType = new TextField();
         TextField txtImgPath = new TextField();
+        TextField txtThreshold = new TextField("5");
 
         String currentFormattedDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd, HH:mm"));
         TextField txtDate = new TextField(currentFormattedDate);
@@ -257,6 +246,7 @@ public class InventoryController {
             txtQty.setText(String.valueOf(part.getPartQuantity()));
             txtType.setText(part.getPartType());
             txtImgPath.setText(part.getImagePath());
+            txtThreshold.setText(String.valueOf(part.getLowStockThreshold()));
             if (part.getAddedDate() != null) {
                 txtDate.setText(part.getAddedDate());
             }
@@ -285,13 +275,15 @@ public class InventoryController {
         grid.add(txtPrice, 1, 3);
         grid.add(new Label("Stock Qty:"), 0, 4);
         grid.add(txtQty, 1, 4);
-        grid.add(new Label("Category Type:"), 0, 5);
-        grid.add(txtType, 1, 5);
-        grid.add(new Label("Date Added:"), 0, 6);
-        grid.add(txtDate, 1, 6);
-        grid.add(new Label("Image Path:"), 0, 7);
-        grid.add(new HBox(5, txtImgPath, btnBrowse), 1, 7);
-        grid.add(lblError, 0, 8, 2, 1);
+        grid.add(new Label("Low Stock Threshold:"), 0, 5);
+        grid.add(txtThreshold, 1, 5);
+        grid.add(new Label("Category Type:"), 0, 6);
+        grid.add(txtType, 1, 6);
+        grid.add(new Label("Date Added:"), 0, 7);
+        grid.add(txtDate, 1, 7);
+        grid.add(new Label("Image Path:"), 0, 8);
+        grid.add(new HBox(5, txtImgPath, btnBrowse), 1, 8);
+        grid.add(lblError, 0, 9, 2, 1);
 
         Button btnSubmit = new Button();
         if (part != null) {
@@ -301,6 +293,18 @@ public class InventoryController {
         }
 
         btnSubmit.setOnAction(e -> {
+            int threshold = 5;
+            try {
+                threshold = Integer.parseInt(txtThreshold.getText().trim());
+                if (threshold <= 0) {
+                    lblError.setText("Threshold must be a positive integer.");
+                    return;
+                }
+            } catch (NumberFormatException ex) {
+                lblError.setText("Invalid low stock threshold value.");
+                return;
+            }
+
             String res;
             if (part != null) {
                 res = UpdateItem.executeUpdate(part.getPartId(), txtName.getText(), txtBrand.getText(), txtPrice.getText(), txtQty.getText(), txtType.getText(), txtImgPath.getText(), FILE_PATH);
@@ -309,6 +313,17 @@ public class InventoryController {
             }
 
             if ("SUCCESS".equals(res)) {
+                if (part != null) {
+                    part.setLowStockThreshold(threshold);
+                } else {
+                    for (Part p : PartLoad.getInventoryList()) {
+                        if (p.getPartId().equalsIgnoreCase(txtId.getText().trim())) {
+                            p.setLowStockThreshold(threshold);
+                            break;
+                        }
+                    }
+                }
+                PartLoad.saveItems(FILE_PATH);
                 refreshScreen();
                 stage.close();
             } else {
@@ -332,7 +347,7 @@ public class InventoryController {
             actions.getChildren().add(btnDelete);
         }
 
-        grid.add(actions, 1, 9);
+        grid.add(actions, 1, 10);
         stage.setScene(new Scene(grid));
         stage.showAndWait();
     }

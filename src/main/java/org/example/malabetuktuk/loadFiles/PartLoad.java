@@ -46,11 +46,19 @@ public class PartLoad {
                         imagePath = cleaned.get(7);
                     }
 
+                    int threshold = 5;
+                    if (cleaned.size() >= 9) {
+                        threshold = parseQuantity(cleaned.get(8));
+                        if (threshold <= 0) {
+                            threshold = 5;
+                        }
+                    }
+
                     if (partId.equals("null") || partName.equals("null")) {
                         continue;
                     }
 
-                    Part newPart = new Part(partId, partName, partBrand, price, quantity, partType, addedDate, imagePath);
+                    Part newPart = new Part(partId, partName, partBrand, price, quantity, partType, addedDate, imagePath, threshold);
                     inventoryList.add(newPart);
                 }
             }
@@ -78,7 +86,8 @@ public class PartLoad {
                         part.getPartQuantity() + "; " +
                         cleanField(part.getPartType()) + "; " +
                         cleanField(part.getAddedDate()) + "; " +
-                        cleanField(part.getImagePath());
+                        cleanField(part.getImagePath()) + "; " +
+                        part.getLowStockThreshold();
 
                 bw.write(line);
                 bw.newLine();
